@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In | TestCase Manager</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="auth-page simple-auth-page">
+    <main class="simple-auth-wrapper">
+      <div class="auth-card simple-auth-card">
+        <a class="brand-mark" href="/index.html">TestCase Manager</a>
+        <h1 class="auth-title">Sign in</h1>
+
+        <form class="auth-form" id="login-form">
+          <label class="form-field" for="email">
+            <span>Email</span>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="name@gmail.com"
+              autocomplete="email"
+              required
+            />
+          </label>
+
+          <label class="form-field" for="password">
+            <span>Password</span>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+
+          <button class="button button-primary button-full" type="submit">
+            Sign in
+          </button>
+        </form>
+
+        <p class="inline-message" id="login-message" aria-live="polite">
+          Enter your details to continue.
+        </p>
+      </div>
+    </main>
+
+    <script src="/js/login.js"></script>
+  </body>
+</html>
