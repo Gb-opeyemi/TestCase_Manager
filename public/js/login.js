@@ -1,15 +1,48 @@
 const loginForm = document.querySelector("#login-form");
 const loginMessage = document.querySelector("#login-message");
+const sessionStorageKey = "testcase-manager-user";
+
+function setLoginMessage(message, state) {
+  loginMessage.textContent = message;
+  loginMessage.classList.remove("is-success", "is-error");
+
+  if (state) {
+    loginMessage.classList.add(state);
+  }
+}
 
 if (loginForm && loginMessage) {
-  loginForm.addEventListener("submit", (event) => {
+  loginForm.addEventListener("submit", async (event) => {
+    // This sends the form straight to the login route.
     event.preventDefault();
 
-    const email = document.querySelector("#email").value.trim();
+    const formData = new FormData(loginForm);
+    const email = formData.get("email")?.toString().trim() || "";
+    const password = formData.get("password")?.toString() || "";
 
-    loginMessage.textContent = email
-      ? `Signing in as ${email}.`
-      : "Signing in.";
-    loginMessage.classList.add("is-success");
+    setLoginMessage("Signing in...");
+
+    try {
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setLoginMessage(data.message || "Unable to sign in.", "is-error");
+        return;
+      }
+
+      // This keeps the whole user object in the browser.
+      localStorage.setItem(sessionStorageKey, JSON.stringify(data.user));
+      window.location.href = data.redirectTo || "/dashboard.html";
+    } catch (error) {
+      setLoginMessage("Unable to sign in.", "is-error");
+    }
   });
 }
