@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Test Case | TestCase Manager</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header dashboard-header">
+      <div class="container">
+        <nav class="topbar" aria-label="Primary">
+          <a class="brand-mark" href="/dashboard.html">TestCase Manager</a>
+          <div class="topbar-actions">
+            <a class="button button-secondary" href="/testcases.html">Back to list</a>
+          </div>
+        </nav>
+
+        <section class="dashboard-hero">
+          <div>
+            <p class="page-label">Create</p>
+            <h1 class="dashboard-title">New test case</h1>
+          </div>
+        </section>
+      </div>
+    </header>
+
+    <main class="container dashboard-content">
+      <section class="dashboard-panel form-panel">
+        <form class="testcase-form" id="create-testcase-form">
+          <div class="form-grid">
+            <label class="form-field">
+              <span>Title</span>
+              <input name="title" type="text" required />
+            </label>
+
+            <label class="form-field">
+              <span>Summary</span>
+              <input name="summary" type="text" />
+            </label>
+
+            <label class="form-field form-field-full">
+              <span>Description</span>
+              <textarea name="description" rows="4"></textarea>
+            </label>
+
+            <label class="form-field form-field-full">
+              <span>Preconditions</span>
+              <textarea name="preconditions" rows="3"></textarea>
+            </label>
+
+            <label class="form-field form-field-full">
+              <span>Steps to reproduce</span>
+              <textarea name="stepsToReproduce" rows="4"></textarea>
+            </label>
+
+            <label class="form-field form-field-full">
+              <span>Expected result</span>
+              <textarea name="expectedResult" rows="3"></textarea>
+            </label>
+
+            <label class="form-field form-field-full">
+              <span>Actual result</span>
+              <textarea name="actualResult" rows="3"></textarea>
+            </label>
+
+            <label class="form-field">
+              <span>Status</span>
+              <select name="status">
+                <option>Pending</option>
+                <option>Passed</option>
+                <option>Failed</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Priority</span>
+              <select name="priority">
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Severity</span>
+              <select name="severity">
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Tags</span>
+              <input name="tags" type="text" placeholder="smoke, login" />
+            </label>
+
+            <label class="form-field">
+              <span>Created by</span>
+              <input name="createdBy" type="email" />
+            </label>
+
+            <label class="form-field">
+              <span>Updated by</span>
+              <input name="updatedBy" type="email" />
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button-primary" type="submit">Create test case</button>
+          </div>
+        </form>
+
+        <p class="inline-message" id="create-message">Fill in the form to save a test case.</p>
+      </section>
+    </main>
+
+    <script src="/js/testcase-create.js"></script>
+  </body>
+</html>

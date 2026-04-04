@@ -4,6 +4,7 @@ const path = require("path");
 const { initializeDatabase } = require("./config/database");
 const authRoutes = require("./routes/auth");
 const dashboardRoutes = require("./routes/dashboard");
+const testCaseRoutes = require("./routes/testcases");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(publicDirectory));
 app.use(authRoutes);
 app.use(dashboardRoutes);
+app.use(testCaseRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({

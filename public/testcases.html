@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Cases | TestCase Manager</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header dashboard-header">
+      <div class="container">
+        <nav class="topbar" aria-label="Primary">
+          <a class="brand-mark" href="/dashboard.html">TestCase Manager</a>
+          <div class="topbar-actions">
+            <a class="button button-secondary" href="/dashboard.html">Dashboard</a>
+            <a class="button button-primary" href="/testcase-create.html">New test case</a>
+          </div>
+        </nav>
+
+        <section class="dashboard-hero page-header-row">
+          <div>
+            <p class="page-label">Test cases</p>
+            <h1 class="dashboard-title">All test cases</h1>
+          </div>
+
+          <form class="search-form" id="search-form">
+            <input
+              class="search-input"
+              id="search-input"
+              name="search"
+              type="text"
+              placeholder="Search test cases"
+            />
+            <button class="button button-primary" type="submit">Search</button>
+          </form>
+        </section>
+      </div>
+    </header>
+
+    <main class="container dashboard-content">
+      <section class="dashboard-panel">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Severity</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="testcases-table-body"></tbody>
+          </table>
+        </div>
+        <p class="inline-message" id="list-message">Loading test cases...</p>
+      </section>
+    </main>
+
+    <script src="/js/testcases.js"></script>
+  </body>
+</html>

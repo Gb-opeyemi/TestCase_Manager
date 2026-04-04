@@ -70,6 +70,16 @@ function all(query) {
   });
 }
 
+async function ensureColumn(tableName, columnName, definition) {
+  // This checks if a column already exists.
+  const columns = await all(`PRAGMA table_info(${tableName})`);
+  const hasColumn = columns.some((column) => column.name === columnName);
+
+  if (!hasColumn) {
+    await run(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+  }
+}
+
 async function seedUsers() {
   // This adds starter users for the app.
   const userCount = await get("SELECT COUNT(*) AS count FROM users");
@@ -114,27 +124,29 @@ async function seedTestCases() {
       summary: "Users can sign in with correct credentials",
       status: "Passed",
       priority: "High",
-      createdBy: 2,
+      createdBy: "tester@testcase.com",
     },
     {
       title: "Reject invalid password",
       summary: "Users see an error when the password is incorrect",
       status: "Failed",
       priority: "High",
-      createdBy: 2,
+      createdBy: "tester@testcase.com",
     },
   ];
 
   for (const testCase of testCases) {
+    // This adds starter test case records.
     await run(
       `
-        INSERT INTO test_cases (title, summary, status, priority, created_by)
+        INSERT INTO test_cases (title, summary, status, priority, created_by, updated_by)
         VALUES (
           '${testCase.title}',
           '${testCase.summary}',
           '${testCase.status}',
           '${testCase.priority}',
-          ${testCase.createdBy}
+          '${testCase.createdBy}',
+          '${testCase.createdBy}'
         )
       `
     );
@@ -142,6 +154,7 @@ async function seedTestCases() {
 }
 
 async function initializeDatabase() {
+  // This creates the main users table.
   await run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,6 +166,7 @@ async function initializeDatabase() {
     )
   `);
 
+  // This creates the main test cases table.
   await run(`
     CREATE TABLE IF NOT EXISTS test_cases (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -166,6 +180,15 @@ async function initializeDatabase() {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // This adds extra fields used by the forms.
+  await ensureColumn("test_cases", "preconditions", "TEXT");
+  await ensureColumn("test_cases", "steps_to_reproduce", "TEXT");
+  await ensureColumn("test_cases", "expected_result", "TEXT");
+  await ensureColumn("test_cases", "actual_result", "TEXT");
+  await ensureColumn("test_cases", "severity", "TEXT DEFAULT 'Medium'");
+  await ensureColumn("test_cases", "tags", "TEXT");
+  await ensureColumn("test_cases", "updated_by", "INTEGER");
 
   await seedUsers();
   await seedTestCases();
