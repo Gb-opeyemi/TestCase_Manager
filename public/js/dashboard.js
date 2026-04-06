@@ -12,6 +12,7 @@ const failedCount = document.querySelector("#failed-count");
 const pendingCount = document.querySelector("#pending-count");
 const activityList = document.querySelector("#activity-list");
 const logoutButton = document.querySelector("#logout-button");
+const usersLink = document.querySelector("#users-link");
 let currentUser = null;
 
 try {
@@ -73,6 +74,11 @@ function renderActivity(items) {
 async function loadDashboard() {
   if (!currentUser) {
     return;
+  }
+
+  // This shows the users link for admins only.
+  if (usersLink && currentUser.role === "Admin") {
+    usersLink.classList.remove("hidden");
   }
 
   dashboardSubtitle.textContent = `${currentUser.fullName} · ${currentUser.role}`;

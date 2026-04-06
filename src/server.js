@@ -6,6 +6,7 @@ const authRoutes = require("./routes/auth");
 const commentRoutes = require("./routes/comments");
 const dashboardRoutes = require("./routes/dashboard");
 const testCaseRoutes = require("./routes/testcases");
+const userRoutes = require("./routes/users");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.use(authRoutes);
 app.use(commentRoutes);
 app.use(dashboardRoutes);
 app.use(testCaseRoutes);
+app.use(userRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({

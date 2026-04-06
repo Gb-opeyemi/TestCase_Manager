@@ -123,6 +123,10 @@ a {
   color: white;
 }
 
+.hidden {
+  display: none;
+}
+
 .auth-page {
   min-height: 100vh;
 }
@@ -312,6 +316,33 @@ a {
 .table-link {
   font-weight: 700;
   text-decoration: none;
+}
+
+.table-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  background: white;
+  color: var(--text);
+}
+
+.table-save-button {
+  min-height: 40px;
+  padding: 0.6rem 0.9rem;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.table-action-button {
+  min-height: 38px;
+  padding: 0.55rem 0.85rem;
 }
 
 .status-badge {
