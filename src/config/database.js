@@ -188,7 +188,19 @@ async function initializeDatabase() {
   await ensureColumn("test_cases", "actual_result", "TEXT");
   await ensureColumn("test_cases", "severity", "TEXT DEFAULT 'Medium'");
   await ensureColumn("test_cases", "tags", "TEXT");
+  await ensureColumn("test_cases", "media_url", "TEXT");
   await ensureColumn("test_cases", "updated_by", "INTEGER");
+
+  // This creates the comments table.
+  await run(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      test_case_id INTEGER NOT NULL,
+      author_email TEXT,
+      content TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
   await seedUsers();
   await seedTestCases();

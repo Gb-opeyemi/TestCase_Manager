@@ -3,20 +3,12 @@ const testCaseId = params.get("id");
 const detailTitle = document.querySelector("#detail-title");
 const detailSubtitle = document.querySelector("#detail-subtitle");
 const detailSections = document.querySelector("#detail-sections");
-const detailForm = document.querySelector("#edit-testcase-form");
-const detailMessage = document.querySelector("#detail-message");
+const commentsList = document.querySelector("#comments-list");
+const commentForm = document.querySelector("#comment-form");
+const commentContent = document.querySelector("#comment-content");
 const deleteButton = document.querySelector("#delete-button");
+const editButton = document.querySelector("#edit-button");
 const sessionStorageKey = "testcase-manager-user";
-
-function setDetailMessage(message, state) {
-  // This updates the message under the edit form.
-  detailMessage.textContent = message;
-  detailMessage.classList.remove("is-success", "is-error");
-
-  if (state) {
-    detailMessage.classList.add(state);
-  }
-}
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString("en-IE", {
@@ -26,10 +18,31 @@ function formatDate(value) {
   });
 }
 
+function isVideo(url = "") {
+  return /\.(mp4|webm|ogg)$/i.test(url);
+}
+
+function renderMedia(url) {
+  if (!url) {
+    return "";
+  }
+
+  if (isVideo(url)) {
+    return `
+      <video class="media-preview" controls>
+        <source src="${url}" />
+      </video>
+    `;
+  }
+
+  return `<img class="media-preview" src="${url}" alt="Test case media" />`;
+}
+
 function renderDetail(testCase) {
   // This prints the test case fields on the page.
   detailTitle.textContent = testCase.title || "Test case";
   detailSubtitle.textContent = `${testCase.status || "Pending"} · Updated ${formatDate(testCase.updated_at)}`;
+  editButton.href = `/testcase-edit.html?id=${testCase.id}`;
 
   detailSections.innerHTML = `
     <article class="detail-card">
@@ -57,6 +70,11 @@ function renderDetail(testCase) {
       <p>${testCase.actual_result || ""}</p>
     </article>
     <article class="detail-card">
+      <h3>Media</h3>
+      ${renderMedia(testCase.media_url)}
+      <p>${testCase.media_url || ""}</p>
+    </article>
+    <article class="detail-card">
       <h3>Meta</h3>
       <p>Status: ${testCase.status || ""}</p>
       <p>Priority: ${testCase.priority || ""}</p>
@@ -68,26 +86,48 @@ function renderDetail(testCase) {
   `;
 }
 
-function fillForm(testCase) {
-  // This fills the edit form with saved values.
-  detailForm.title.value = testCase.title || "";
-  detailForm.summary.value = testCase.summary || "";
-  detailForm.description.value = testCase.description || "";
-  detailForm.preconditions.value = testCase.preconditions || "";
-  detailForm.stepsToReproduce.value = testCase.steps_to_reproduce || "";
-  detailForm.expectedResult.value = testCase.expected_result || "";
-  detailForm.actualResult.value = testCase.actual_result || "";
-  detailForm.status.value = testCase.status || "Pending";
-  detailForm.priority.value = testCase.priority || "Medium";
-  detailForm.severity.value = testCase.severity || "Medium";
-  detailForm.tags.value = testCase.tags || "";
-  detailForm.createdBy.value = testCase.created_by || "";
-  detailForm.updatedBy.value = testCase.updated_by || testCase.created_by || "";
+function renderComments(comments) {
+  // This prints the comments under the test case.
+  commentsList.innerHTML = "";
+
+  if (!comments.length) {
+    commentsList.innerHTML = '<p class="inline-message">No comments yet.</p>';
+    return;
+  }
+
+  comments.forEach((comment) => {
+    const item = document.createElement("article");
+    item.className = "comment-item";
+    item.innerHTML = `
+      <div class="comment-meta">
+        <strong>${comment.author_email || "Unknown user"}</strong>
+        <span>${formatDate(comment.created_at)}</span>
+      </div>
+      <p>${comment.content}</p>
+    `;
+    commentsList.appendChild(item);
+  });
+}
+
+async function loadComments() {
+  try {
+    const response = await fetch(`/testcases/${testCaseId}/comments`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      window.showNotification(data.message || "Unable to load comments.", "error");
+      return;
+    }
+
+    renderComments(data);
+  } catch (error) {
+    window.showNotification("Unable to load comments.", "error");
+  }
 }
 
 async function loadTestCase() {
   if (!testCaseId) {
-    setDetailMessage("Test case not found.", "is-error");
+    window.showNotification("Test case not found.", "error");
     return;
   }
 
@@ -96,54 +136,53 @@ async function loadTestCase() {
     const data = await response.json();
 
     if (!response.ok) {
-      setDetailMessage(data.message || "Unable to load test case.", "is-error");
+      window.showNotification(data.message || "Unable to load test case.", "error");
       return;
     }
 
     renderDetail(data);
-    fillForm(data);
-    setDetailMessage("");
   } catch (error) {
-    setDetailMessage("Unable to load test case.", "is-error");
+    window.showNotification("Unable to load test case.", "error");
   }
 }
 
-if (detailForm) {
+if (commentForm) {
   const savedUser = localStorage.getItem(sessionStorageKey);
 
-  if (savedUser) {
-    // This fills the updater email from the saved user.
-    const user = JSON.parse(savedUser);
-    detailForm.updatedBy.value = user.email || "";
+  if (!savedUser) {
+    commentForm.style.display = "none";
   }
 
-  detailForm.addEventListener("submit", async (event) => {
-    // This sends the edited values to the API.
+  commentForm.addEventListener("submit", async (event) => {
+    // This sends the new comment to the API.
     event.preventDefault();
 
-    const payload = Object.fromEntries(new FormData(detailForm).entries());
-    setDetailMessage("Saving changes...");
+    const user = savedUser ? JSON.parse(savedUser) : null;
 
     try {
-      const response = await fetch(`/testcases/${testCaseId}`, {
-        method: "PATCH",
+      const response = await fetch(`/testcases/${testCaseId}/comments`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          authorEmail: user?.email || "",
+          content: commentContent.value,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setDetailMessage(data.message || "Unable to save changes.", "is-error");
+        window.showNotification(data.message || "Unable to add comment.", "error");
         return;
       }
 
-      setDetailMessage("Changes saved.", "is-success");
-      loadTestCase();
+      commentForm.reset();
+      window.showNotification("Comment added successfully.", "success");
+      loadComments();
     } catch (error) {
-      setDetailMessage("Unable to save changes.", "is-error");
+      window.showNotification("Unable to add comment.", "error");
     }
   });
 }
@@ -159,15 +198,17 @@ if (deleteButton) {
       const data = await response.json();
 
       if (!response.ok) {
-        setDetailMessage(data.message || "Unable to delete test case.", "is-error");
+        window.showNotification(data.message || "Unable to delete test case.", "error");
         return;
       }
 
+      window.saveNotification("Test case deleted successfully.", "success");
       window.location.href = data.redirectTo || "/testcases.html";
     } catch (error) {
-      setDetailMessage("Unable to delete test case.", "is-error");
+      window.showNotification("Unable to delete test case.", "error");
     }
   });
 }
 
 loadTestCase();
+loadComments();

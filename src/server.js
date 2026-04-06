@@ -3,6 +3,7 @@ const path = require("path");
 
 const { initializeDatabase } = require("./config/database");
 const authRoutes = require("./routes/auth");
+const commentRoutes = require("./routes/comments");
 const dashboardRoutes = require("./routes/dashboard");
 const testCaseRoutes = require("./routes/testcases");
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(publicDirectory));
 app.use(authRoutes);
+app.use(commentRoutes);
 app.use(dashboardRoutes);
 app.use(testCaseRoutes);
 

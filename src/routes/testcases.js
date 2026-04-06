@@ -78,6 +78,7 @@ router.post("/testcases", async (req, res) => {
   const severity = readValue(req.body.severity, "Medium");
   const status = readValue(req.body.status, "Pending");
   const tags = readValue(req.body.tags);
+  const mediaUrl = readValue(req.body.mediaUrl);
   const createdBy = readValue(req.body.createdBy);
   const updatedBy = readValue(req.body.updatedBy, createdBy);
 
@@ -103,6 +104,7 @@ router.post("/testcases", async (req, res) => {
         severity,
         status,
         tags,
+        media_url,
         created_by,
         updated_by,
         updated_at
@@ -119,6 +121,7 @@ router.post("/testcases", async (req, res) => {
         '${severity}',
         '${status}',
         '${tags}',
+        '${mediaUrl}',
         '${createdBy}',
         '${updatedBy}',
         CURRENT_TIMESTAMP
@@ -150,6 +153,7 @@ router.patch("/testcases/:id", async (req, res) => {
   const severity = readValue(req.body.severity, "Medium");
   const status = readValue(req.body.status, "Pending");
   const tags = readValue(req.body.tags);
+  const mediaUrl = readValue(req.body.mediaUrl);
   const createdBy = readValue(req.body.createdBy);
   const updatedBy = readValue(req.body.updatedBy, createdBy);
 
@@ -169,6 +173,7 @@ router.patch("/testcases/:id", async (req, res) => {
         severity = '${severity}',
         status = '${status}',
         tags = '${tags}',
+        media_url = '${mediaUrl}',
         created_by = '${createdBy}',
         updated_by = '${updatedBy}',
         updated_at = CURRENT_TIMESTAMP

@@ -16,11 +16,18 @@
           </div>
         </nav>
 
-        <section class="dashboard-hero">
+        <section class="dashboard-hero detail-header-row">
           <div>
             <p class="page-label">Detail</p>
             <h1 class="dashboard-title" id="detail-title">Test case</h1>
             <p class="intro" id="detail-subtitle">Loading...</p>
+          </div>
+
+          <div class="detail-actions">
+            <a class="button button-primary" id="edit-button" href="/testcases.html">Edit</a>
+            <button class="button button-danger" id="delete-button" type="button">
+              Delete
+            </button>
           </div>
         </section>
       </div>
@@ -34,103 +41,27 @@
         <div class="detail-sections" id="detail-sections"></div>
       </section>
 
-      <section class="dashboard-panel form-panel">
+      <section class="dashboard-panel">
         <div class="panel-heading">
-          <h2>Edit test case</h2>
+          <h2>Comments</h2>
         </div>
 
-        <form class="testcase-form" id="edit-testcase-form">
-          <div class="form-grid">
-            <label class="form-field">
-              <span>Title</span>
-              <input name="title" type="text" required />
-            </label>
-
-            <label class="form-field">
-              <span>Summary</span>
-              <input name="summary" type="text" />
-            </label>
-
-            <label class="form-field form-field-full">
-              <span>Description</span>
-              <textarea name="description" rows="4"></textarea>
-            </label>
-
-            <label class="form-field form-field-full">
-              <span>Preconditions</span>
-              <textarea name="preconditions" rows="3"></textarea>
-            </label>
-
-            <label class="form-field form-field-full">
-              <span>Steps to reproduce</span>
-              <textarea name="stepsToReproduce" rows="4"></textarea>
-            </label>
-
-            <label class="form-field form-field-full">
-              <span>Expected result</span>
-              <textarea name="expectedResult" rows="3"></textarea>
-            </label>
-
-            <label class="form-field form-field-full">
-              <span>Actual result</span>
-              <textarea name="actualResult" rows="3"></textarea>
-            </label>
-
-            <label class="form-field">
-              <span>Status</span>
-              <select name="status">
-                <option>Pending</option>
-                <option>Passed</option>
-                <option>Failed</option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>Priority</span>
-              <select name="priority">
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>Severity</span>
-              <select name="severity">
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>Tags</span>
-              <input name="tags" type="text" />
-            </label>
-
-            <label class="form-field">
-              <span>Created by</span>
-              <input name="createdBy" type="email" />
-            </label>
-
-            <label class="form-field">
-              <span>Updated by</span>
-              <input name="updatedBy" type="email" />
-            </label>
-          </div>
+        <form class="comment-form" id="comment-form">
+          <label class="form-field form-field-full">
+            <span>Comment</span>
+            <textarea id="comment-content" name="content" rows="3"></textarea>
+          </label>
 
           <div class="form-actions">
-            <button class="button button-primary" type="submit">Save changes</button>
-            <button class="button button-danger" id="delete-button" type="button">
-              Delete
-            </button>
+            <button class="button button-primary" type="submit">Add comment</button>
           </div>
         </form>
 
-        <p class="inline-message" id="detail-message">Loading test case...</p>
+        <div class="comments-list" id="comments-list"></div>
       </section>
     </main>
 
+    <script src="/js/notifications.js"></script>
     <script src="/js/testcase-detail.js"></script>
   </body>
 </html>

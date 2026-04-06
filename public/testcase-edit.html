@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>New Test Case | TestCase Manager</title>
+    <title>Edit Test Case | TestCase Manager</title>
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
@@ -12,14 +12,16 @@
         <nav class="topbar" aria-label="Primary">
           <a class="brand-mark" href="/dashboard.html">TestCase Manager</a>
           <div class="topbar-actions">
-            <a class="button button-secondary" href="/testcases.html">Back to list</a>
+            <a class="button button-secondary" id="back-to-detail" href="/testcases.html">
+              Back to detail
+            </a>
           </div>
         </nav>
 
         <section class="dashboard-hero">
           <div>
-            <p class="page-label">Create</p>
-            <h1 class="dashboard-title">New test case</h1>
+            <p class="page-label">Edit</p>
+            <h1 class="dashboard-title">Edit test case</h1>
           </div>
         </section>
       </div>
@@ -27,7 +29,7 @@
 
     <main class="container dashboard-content">
       <section class="dashboard-panel form-panel">
-        <form class="testcase-form" id="create-testcase-form">
+        <form class="testcase-form" id="edit-testcase-form">
           <div class="form-grid">
             <label class="form-field">
               <span>Title</span>
@@ -82,7 +84,7 @@
               <span>Priority</span>
               <select name="priority">
                 <option>Low</option>
-                <option selected>Medium</option>
+                <option>Medium</option>
                 <option>High</option>
               </select>
             </label>
@@ -91,14 +93,14 @@
               <span>Severity</span>
               <select name="severity">
                 <option>Low</option>
-                <option selected>Medium</option>
+                <option>Medium</option>
                 <option>High</option>
               </select>
             </label>
 
             <label class="form-field">
               <span>Tags</span>
-              <input name="tags" type="text" placeholder="smoke, login" />
+              <input name="tags" type="text" />
             </label>
 
             <label class="form-field">
@@ -113,13 +115,13 @@
           </div>
 
           <div class="form-actions">
-            <button class="button button-primary" type="submit">Create test case</button>
+            <button class="button button-primary" type="submit">Save changes</button>
           </div>
         </form>
       </section>
     </main>
 
     <script src="/js/notifications.js"></script>
-    <script src="/js/testcase-create.js"></script>
+    <script src="/js/testcase-edit.js"></script>
   </body>
 </html>
