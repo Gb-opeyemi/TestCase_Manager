@@ -89,6 +89,7 @@ async function seedUsers() {
   }
 
   const users = [
+    // These passwords are stored as plain text.
     { fullName: "Admin User", email: "admin@testcase.com", password: "admin123", role: "Admin" },
     { fullName: "Tester User", email: "tester@testcase.com", password: "tester123", role: "Tester" },
     { fullName: "Developer User", email: "developer@testcase.com", password: "developer123", role: "Developer" },
@@ -101,6 +102,7 @@ async function seedUsers() {
   ];
 
   for (const user of users) {
+    // This is an unsafe raw SQL construction allowing for SQL injection
     await run(
       `
         INSERT INTO users (full_name, email, password, role)
@@ -137,6 +139,7 @@ async function seedTestCases() {
 
   for (const testCase of testCases) {
     // This adds starter test case records.
+    // This is an unsafe raw SQL construction allowing for SQL injection
     await run(
       `
         INSERT INTO test_cases (title, summary, status, priority, created_by, updated_by)

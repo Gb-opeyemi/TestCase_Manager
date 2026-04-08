@@ -31,6 +31,7 @@ async function loadUser() {
   }
 
   try {
+    // This direct user fetch allows IDOR in the UI.
     const response = await fetch(`/users/${userId}`);
     const data = await response.json();
 

@@ -1,7 +1,6 @@
-const sessionStorageKey = "testcase-manager-user";
-const storedUser = localStorage.getItem(sessionStorageKey);
+const currentUser = window.getCurrentUser();
 
-if (!storedUser) {
+if (!currentUser) {
   window.location.href = "/login.html";
 }
 
@@ -12,15 +11,8 @@ const failedCount = document.querySelector("#failed-count");
 const pendingCount = document.querySelector("#pending-count");
 const activityList = document.querySelector("#activity-list");
 const logoutButton = document.querySelector("#logout-button");
+const newTestCaseLink = document.querySelector("#new-testcase-link");
 const usersLink = document.querySelector("#users-link");
-let currentUser = null;
-
-try {
-  currentUser = storedUser ? JSON.parse(storedUser) : null;
-} catch (error) {
-  localStorage.removeItem(sessionStorageKey);
-  window.location.href = "/login.html";
-}
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString("en-IE", {
@@ -76,6 +68,11 @@ async function loadDashboard() {
     return;
   }
 
+  // This shows the create link for admins and testers.
+  if (newTestCaseLink && window.canManageTestCases(currentUser)) {
+    newTestCaseLink.classList.remove("hidden");
+  }
+
   // This shows the users link for admins only.
   if (usersLink && currentUser.role === "Admin") {
     usersLink.classList.remove("hidden");
@@ -104,7 +101,7 @@ async function loadDashboard() {
 
 if (logoutButton) {
   logoutButton.addEventListener("click", () => {
-    localStorage.removeItem(sessionStorageKey);
+    localStorage.removeItem(window.sessionStorageKey);
     window.location.href = "/login.html";
   });
 }

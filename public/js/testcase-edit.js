@@ -2,7 +2,7 @@ const params = new URLSearchParams(window.location.search);
 const testCaseId = params.get("id");
 const editForm = document.querySelector("#edit-testcase-form");
 const backToDetailLink = document.querySelector("#back-to-detail");
-const sessionStorageKey = "testcase-manager-user";
+const currentUser = window.getCurrentUser();
 
 function fillForm(testCase) {
   // This fills the edit form with saved values.
@@ -45,12 +45,9 @@ async function loadTestCase() {
 }
 
 if (editForm) {
-  const savedUser = localStorage.getItem(sessionStorageKey);
-
-  if (savedUser) {
+  if (currentUser) {
     // This fills the updater email from the saved user.
-    const user = JSON.parse(savedUser);
-    editForm.updatedBy.value = user.email || "";
+    editForm.updatedBy.value = currentUser.email || "";
   }
 
   editForm.addEventListener("submit", async (event) => {

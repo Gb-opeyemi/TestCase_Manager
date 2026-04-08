@@ -2,6 +2,8 @@ const tableBody = document.querySelector("#testcases-table-body");
 const listMessage = document.querySelector("#list-message");
 const searchForm = document.querySelector("#search-form");
 const searchInput = document.querySelector("#search-input");
+const newTestCaseLink = document.querySelector("#new-testcase-link");
+const currentUser = window.getCurrentUser();
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString("en-IE", {
@@ -41,6 +43,11 @@ function renderRows(testCases) {
 }
 
 async function loadTestCases(search = "") {
+  // This shows the create link for admins and testers.
+  if (newTestCaseLink && window.canManageTestCases(currentUser)) {
+    newTestCaseLink.classList.remove("hidden");
+  }
+
   listMessage.textContent = "Loading test cases...";
 
   try {

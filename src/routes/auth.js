@@ -17,7 +17,7 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // This query is built from user input to show SQL Injection
+    // This login query is built from user input and vulnerable to SQL Injection
     const user = await get(`
       SELECT id, full_name, email, password, role
       FROM users
@@ -31,6 +31,7 @@ router.post("/login", async (req, res) => {
       return;
     }
 
+    // This sends the plain text password back to the browser
     res.json({
       user: {
         id: user.id,

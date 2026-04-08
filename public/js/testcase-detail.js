@@ -8,7 +8,7 @@ const commentForm = document.querySelector("#comment-form");
 const commentContent = document.querySelector("#comment-content");
 const deleteButton = document.querySelector("#delete-button");
 const editButton = document.querySelector("#edit-button");
-const sessionStorageKey = "testcase-manager-user";
+const currentUser = window.getCurrentUser();
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString("en-IE", {
@@ -44,6 +44,7 @@ function renderDetail(testCase) {
   detailSubtitle.textContent = `${testCase.status || "Pending"} · Updated ${formatDate(testCase.updated_at)}`;
   editButton.href = `/testcase-edit.html?id=${testCase.id}`;
 
+  // Using innerHTML to render content allows stored XSS
   detailSections.innerHTML = `
     <article class="detail-card">
       <h3>Summary</h3>
@@ -98,6 +99,7 @@ function renderComments(comments) {
   comments.forEach((comment) => {
     const item = document.createElement("article");
     item.className = "comment-item";
+   // Using innerHTML to render content allows stored XSS
     item.innerHTML = `
       <div class="comment-meta">
         <strong>${comment.author_email || "Unknown user"}</strong>
@@ -141,15 +143,19 @@ async function loadTestCase() {
     }
 
     renderDetail(data);
+
+    // This shows edit and delete for admins and testers.
+    if (window.canManageTestCases(currentUser)) {
+      editButton.classList.remove("hidden");
+      deleteButton.classList.remove("hidden");
+    }
   } catch (error) {
     window.showNotification("Unable to load test case.", "error");
   }
 }
 
 if (commentForm) {
-  const savedUser = localStorage.getItem(sessionStorageKey);
-
-  if (!savedUser) {
+  if (!window.canCommentOnTestCases(currentUser)) {
     commentForm.style.display = "none";
   }
 
@@ -157,16 +163,15 @@ if (commentForm) {
     // This sends the new comment to the API.
     event.preventDefault();
 
-    const user = savedUser ? JSON.parse(savedUser) : null;
-
     try {
+      // This comment request has no CSRF protection.
       const response = await fetch(`/testcases/${testCaseId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          authorEmail: user?.email || "",
+          authorEmail: currentUser?.email || "",
           content: commentContent.value,
         }),
       });
@@ -191,6 +196,7 @@ if (deleteButton) {
   deleteButton.addEventListener("click", async () => {
     // This sends the delete request to the API.
     try {
+      // This delete request has no CSRF protection.
       const response = await fetch(`/testcases/${testCaseId}`, {
         method: "DELETE",
       });

@@ -11,6 +11,7 @@ function readValue(value, fallback = "") {
 router.get("/users", async (req, res) => {
   // This loads all users for the table.
   try {
+    // This route has no backend role validation
     const users = await all(`
       SELECT id, full_name, email, role, created_at
       FROM users
@@ -30,6 +31,7 @@ router.get("/users/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // This direct object lookup allows IDOR
     const user = await get(`
       SELECT id, full_name, email, password, role, created_at
       FROM users
@@ -66,6 +68,7 @@ router.post("/users", async (req, res) => {
   }
 
   try {
+    // This insert query is vulnerable to SQL Injection
     const result = await run(`
       INSERT INTO users (full_name, email, password, role)
       VALUES ('${fullName}', '${email}', '${password}', '${role}')
@@ -98,6 +101,7 @@ router.patch("/users/:id", async (req, res) => {
   }
 
   try {
+    // This update has no backend role validation
     await run(`
       UPDATE users
       SET
@@ -123,6 +127,7 @@ router.delete("/users/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // This delete has no backend role validation
     await run(`
       DELETE FROM users
       WHERE id = ${id}

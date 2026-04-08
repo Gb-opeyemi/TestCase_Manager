@@ -1,14 +1,11 @@
 const createForm = document.querySelector("#create-testcase-form");
-const sessionStorageKey = "testcase-manager-user";
+const currentUser = window.getCurrentUser();
 
 if (createForm) {
-  const savedUser = localStorage.getItem(sessionStorageKey);
-
-  if (savedUser) {
+  if (currentUser) {
     // This fills the email fields from the saved user.
-    const user = JSON.parse(savedUser);
-    createForm.createdBy.value = user.email || "";
-    createForm.updatedBy.value = user.email || "";
+    createForm.createdBy.value = currentUser.email || "";
+    createForm.updatedBy.value = currentUser.email || "";
   }
 
   createForm.addEventListener("submit", async (event) => {

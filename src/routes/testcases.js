@@ -13,6 +13,7 @@ router.get("/testcases", async (req, res) => {
   const search = readValue(req.query.search);
 
   try {
+    // This search query is vulnerable to SQL Injection
     const rows = await all(`
       SELECT
         id,
@@ -44,6 +45,7 @@ router.get("/testcases/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // This direct object lookup allows IDOR
     const testCase = await get(`
       SELECT *
       FROM test_cases
@@ -91,6 +93,7 @@ router.post("/testcases", async (req, res) => {
 
   try {
     // This saves the new test case record.
+    // This insert query is vulnerable to SQL Injection
     const result = await run(`
       INSERT INTO test_cases (
         title,
@@ -159,6 +162,7 @@ router.patch("/testcases/:id", async (req, res) => {
 
   try {
     // This saves the changed test case record.
+    // This update has no backend role or ownership check
     await run(`
       UPDATE test_cases
       SET
@@ -195,6 +199,7 @@ router.delete("/testcases/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // This delete has no backend role or ownership check
     await run(`
       DELETE FROM test_cases
       WHERE id = ${id}

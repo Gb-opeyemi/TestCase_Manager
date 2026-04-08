@@ -38,7 +38,7 @@ if (loginForm && loginMessage) {
         return;
       }
 
-      // This keeps the whole user object in the browser.
+      // This stores sensitive user data in localStorage
       localStorage.setItem(sessionStorageKey, JSON.stringify(data.user));
       window.location.href = data.redirectTo || "/dashboard.html";
     } catch (error) {
