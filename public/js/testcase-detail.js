@@ -40,7 +40,7 @@ function renderMedia(url) {
 
 function renderDetail(testCase) {
   // This prints the test case fields on the page.
-  detailTitle.textContent = testCase.title || "Test case";
+  detailTitle.innerHTML = testCase.title || "Test case";
   detailSubtitle.textContent = `${testCase.status || "Pending"} · Updated ${formatDate(testCase.updated_at)}`;
   editButton.href = `/testcase-edit.html?id=${testCase.id}`;
 

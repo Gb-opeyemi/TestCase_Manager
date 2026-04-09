@@ -41,7 +41,7 @@ function renderActivity(items) {
     copy.className = "activity-copy";
 
     const title = document.createElement("strong");
-    title.textContent = item.title;
+    title.innerHTML = item.title;
 
     const status = document.createElement("span");
     status.textContent = item.status;
