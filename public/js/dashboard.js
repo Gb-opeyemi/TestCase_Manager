@@ -1,9 +1,3 @@
-const currentUser = window.getCurrentUser();
-
-if (!currentUser) {
-  window.location.href = "/login.html";
-}
-
 const dashboardSubtitle = document.querySelector("#dashboard-subtitle");
 const totalCount = document.querySelector("#total-count");
 const passedCount = document.querySelector("#passed-count");
@@ -64,6 +58,8 @@ function renderActivity(items) {
 }
 
 async function loadDashboard() {
+  const currentUser = await window.requireCurrentUser();
+
   if (!currentUser) {
     return;
   }
@@ -101,8 +97,7 @@ async function loadDashboard() {
 
 if (logoutButton) {
   logoutButton.addEventListener("click", () => {
-    localStorage.removeItem(window.sessionStorageKey);
-    window.location.href = "/login.html";
+    window.logoutUser();
   });
 }
 

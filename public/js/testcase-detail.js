@@ -8,7 +8,6 @@ const commentForm = document.querySelector("#comment-form");
 const commentContent = document.querySelector("#comment-content");
 const deleteButton = document.querySelector("#delete-button");
 const editButton = document.querySelector("#edit-button");
-const currentUser = window.getCurrentUser();
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString("en-IE", {
@@ -112,6 +111,12 @@ function renderComments(comments) {
 }
 
 async function loadComments() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
   try {
     const response = await fetch(`/testcases/${testCaseId}/comments`);
     const data = await response.json();
@@ -128,6 +133,12 @@ async function loadComments() {
 }
 
 async function loadTestCase() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
   if (!testCaseId) {
     window.showNotification("Test case not found.", "error");
     return;
@@ -155,15 +166,22 @@ async function loadTestCase() {
 }
 
 if (commentForm) {
-  if (!window.canCommentOnTestCases(currentUser)) {
-    commentForm.style.display = "none";
-  }
-
   commentForm.addEventListener("submit", async (event) => {
     // This sends the new comment to the API.
     event.preventDefault();
 
     try {
+      const currentUser = await window.requireCurrentUser();
+
+      if (!currentUser) {
+        return;
+      }
+
+      if (!window.canCommentOnTestCases(currentUser)) {
+        commentForm.style.display = "none";
+        return;
+      }
+
       // This comment request has no CSRF protection.
       const response = await fetch(`/testcases/${testCaseId}/comments`, {
         method: "POST",
@@ -192,6 +210,18 @@ if (commentForm) {
   });
 }
 
+async function setCommentFormState() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
+  if (!window.canCommentOnTestCases(currentUser)) {
+    commentForm.style.display = "none";
+  }
+}
+
 if (deleteButton) {
   deleteButton.addEventListener("click", async () => {
     // This sends the delete request to the API.
@@ -216,5 +246,6 @@ if (deleteButton) {
   });
 }
 
+setCommentFormState();
 loadTestCase();
 loadComments();

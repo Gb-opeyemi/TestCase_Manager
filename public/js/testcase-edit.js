@@ -2,7 +2,6 @@ const params = new URLSearchParams(window.location.search);
 const testCaseId = params.get("id");
 const editForm = document.querySelector("#edit-testcase-form");
 const backToDetailLink = document.querySelector("#back-to-detail");
-const currentUser = window.getCurrentUser();
 
 function fillForm(testCase) {
   // This fills the edit form with saved values.
@@ -23,6 +22,12 @@ function fillForm(testCase) {
 }
 
 async function loadTestCase() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
   if (!testCaseId) {
     window.showNotification("Test case not found.", "error");
     return;
@@ -45,11 +50,6 @@ async function loadTestCase() {
 }
 
 if (editForm) {
-  if (currentUser) {
-    // This fills the updater email from the saved user.
-    editForm.updatedBy.value = currentUser.email || "";
-  }
-
   editForm.addEventListener("submit", async (event) => {
     // This sends the edited values to the API.
     event.preventDefault();

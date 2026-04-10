@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const path = require("path");
 
 const { initializeDatabase } = require("./config/database");
@@ -15,6 +16,20 @@ const publicDirectory = path.join(__dirname, "..", "public");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  session({
+    // This signs the session cookie for the browser.
+    secret: process.env.SESSION_SECRET || "my-session-secret", //Set session secret in env file
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production", //Send over HTTPS in production
+      maxAge: 1000 * 60 * 60 * 8,
+    },
+  })
+);
 app.use(express.static(publicDirectory));
 app.use(authRoutes);
 app.use(commentRoutes);

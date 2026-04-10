@@ -1,10 +1,13 @@
 const express = require("express");
 
 const { all, get, run } = require("../config/database");
+const { requireAuthenticated } = require("../middleware/auth");
 const { hashPassword } = require("../utils/passwords");
 const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
+
+router.use(requireAuthenticated);
 
 function readValue(value, fallback = "") {
   return value?.toString().trim() || fallback;

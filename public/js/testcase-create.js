@@ -1,13 +1,20 @@
 const createForm = document.querySelector("#create-testcase-form");
-const currentUser = window.getCurrentUser();
 
-if (createForm) {
+async function setCreateFormUser() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!createForm || !currentUser) {
+    return;
+  }
+
   if (currentUser) {
     // This fills the email fields from the saved user.
     createForm.createdBy.value = currentUser.email || "";
     createForm.updatedBy.value = currentUser.email || "";
   }
+}
 
+if (createForm) {
   createForm.addEventListener("submit", async (event) => {
     // This sends the new test case to the API.
     event.preventDefault();
@@ -38,3 +45,5 @@ if (createForm) {
     }
   });
 }
+
+setCreateFormUser();

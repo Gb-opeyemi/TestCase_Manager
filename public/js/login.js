@@ -1,6 +1,5 @@
 const loginForm = document.querySelector("#login-form");
 const loginMessage = document.querySelector("#login-message");
-const sessionStorageKey = "testcase-manager-user";
 
 function setLoginMessage(message, state) {
   loginMessage.textContent = message;
@@ -38,8 +37,6 @@ if (loginForm && loginMessage) {
         return;
       }
 
-      // This stores only the session details needed by the UI.
-      localStorage.setItem(sessionStorageKey, JSON.stringify(data.user));
       window.location.href = data.redirectTo || "/dashboard.html";
     } catch (error) {
       setLoginMessage("Unable to sign in.", "is-error");

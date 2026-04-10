@@ -1,19 +1,5 @@
-const sessionStorageKey = "testcase-manager-user";
-const storedUser = localStorage.getItem(sessionStorageKey);
 const createUserForm = document.querySelector("#create-user-form");
 const usersTableBody = document.querySelector("#users-table-body");
-
-let currentUser = null;
-
-try {
-  currentUser = storedUser ? JSON.parse(storedUser) : null;
-} catch (error) {
-  localStorage.removeItem(sessionStorageKey);
-}
-
-if (!currentUser) {
-  window.location.href = "/login.html";
-}
 
 function renderUsers(users) {
   // This prints the user rows in the table.
@@ -35,6 +21,12 @@ function renderUsers(users) {
 }
 
 async function loadUsers() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
   try {
     const response = await fetch("/users");
     const data = await response.json();
@@ -54,6 +46,12 @@ if (createUserForm) {
   createUserForm.addEventListener("submit", async (event) => {
     // This sends the new user to the API.
     event.preventDefault();
+
+    const currentUser = await window.requireCurrentUser();
+
+    if (!currentUser) {
+      return;
+    }
 
     const payload = Object.fromEntries(new FormData(createUserForm).entries());
 
@@ -92,6 +90,12 @@ if (usersTableBody) {
 
     // This sends the delete request for one user.
     const userId = deleteButton.dataset.id;
+
+    const currentUser = await window.requireCurrentUser();
+
+    if (!currentUser) {
+      return;
+    }
 
     try {
       const response = await fetch(`/users/${userId}`, {

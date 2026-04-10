@@ -1,20 +1,6 @@
-const sessionStorageKey = "testcase-manager-user";
-const storedUser = localStorage.getItem(sessionStorageKey);
 const editUserForm = document.querySelector("#edit-user-form");
 const params = new URLSearchParams(window.location.search);
 const userId = params.get("id");
-
-let currentUser = null;
-
-try {
-  currentUser = storedUser ? JSON.parse(storedUser) : null;
-} catch (error) {
-  localStorage.removeItem(sessionStorageKey);
-}
-
-if (!currentUser) {
-  window.location.href = "/login.html";
-}
 
 function fillForm(user) {
   // This fills the edit form with saved user values.
@@ -25,6 +11,12 @@ function fillForm(user) {
 }
 
 async function loadUser() {
+  const currentUser = await window.requireCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
   if (!userId) {
     window.showNotification("User not found.", "error");
     return;
@@ -50,6 +42,12 @@ if (editUserForm) {
   editUserForm.addEventListener("submit", async (event) => {
     // This sends the edited user values to the API.
     event.preventDefault();
+
+    const currentUser = await window.requireCurrentUser();
+
+    if (!currentUser) {
+      return;
+    }
 
     const payload = Object.fromEntries(new FormData(editUserForm).entries());
 

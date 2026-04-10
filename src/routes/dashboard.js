@@ -1,8 +1,11 @@
 const express = require("express");
 
 const { all, get } = require("../config/database");
+const { requireAuthenticated } = require("../middleware/auth");
 
 const router = express.Router();
+
+router.use(requireAuthenticated);
 
 router.get("/api/dashboard", async (req, res) => {
   try {

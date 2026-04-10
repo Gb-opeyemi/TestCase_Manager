@@ -1,16 +1,15 @@
 const express = require("express");
 
 const { all, run } = require("../config/database");
+const { requireAuthenticated } = require("../middleware/auth");
+const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
 
+router.use(requireAuthenticated);
+
 function readValue(value, fallback = "") {
   return value?.toString().trim() || fallback;
-}
-
-function escapeSingleQuotes(value) {
-  // This keeps single quotes from breaking the SQL string
-  return value.replace(/'/g, "''");
 }
 
 router.get("/testcases/:id/comments", async (req, res) => {
@@ -37,8 +36,8 @@ router.get("/testcases/:id/comments", async (req, res) => {
 router.post("/testcases/:id/comments", async (req, res) => {
   // This saves a new comment for a test case.
   const { id } = req.params;
-  const authorEmail = escapeSingleQuotes(readValue(req.body.authorEmail));
-  const content = escapeSingleQuotes(readValue(req.body.content));
+  const authorEmail = escapeSqlValue(readValue(req.body.authorEmail));
+  const content = escapeSqlValue(readValue(req.body.content));
 
   if (!content) {
     res.status(400).json({
