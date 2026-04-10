@@ -1,6 +1,8 @@
 const express = require("express");
 
 const { all, get, run } = require("../config/database");
+const { hashPassword } = require("../utils/passwords");
+const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
 
@@ -33,7 +35,7 @@ router.get("/users/:id", async (req, res) => {
   try {
     // This direct object lookup allows IDOR
     const user = await get(`
-      SELECT id, full_name, email, password, role, created_at
+      SELECT id, full_name, email, role, created_at
       FROM users
       WHERE id = ${id}
     `);
@@ -68,10 +70,15 @@ router.post("/users", async (req, res) => {
   }
 
   try {
-    // This insert query is vulnerable to SQL Injection
+    // This hashes the password before saving the new user.
     const result = await run(`
       INSERT INTO users (full_name, email, password, role)
-      VALUES ('${fullName}', '${email}', '${password}', '${role}')
+      VALUES (
+        '${escapeSqlValue(fullName)}',
+        '${escapeSqlValue(email)}',
+        '${hashPassword(password)}',
+        '${escapeSqlValue(role)}'
+      )
     `);
 
     res.status(201).json({
@@ -93,22 +100,38 @@ router.patch("/users/:id", async (req, res) => {
   const password = readValue(req.body.password);
   const role = readValue(req.body.role);
 
-  if (!fullName || !email || !password || !role) {
+  if (!fullName || !email || !role) {
     res.status(400).json({
-      message: "Name, email, password, and role are required.",
+      message: "Name, email, and role are required.",
     });
     return;
   }
 
   try {
+    const savedUser = await get(`
+      SELECT password
+      FROM users
+      WHERE id = ${id}
+    `);
+
+    if (!savedUser) {
+      res.status(404).json({
+        message: "User not found.",
+      });
+      return;
+    }
+
+    // This keeps the old password unless a new one is entered.
+    const nextPassword = password ? hashPassword(password) : savedUser.password;
+
     // This update has no backend role validation
     await run(`
       UPDATE users
       SET
-        full_name = '${fullName}',
-        email = '${email}',
-        password = '${password}',
-        role = '${role}'
+        full_name = '${escapeSqlValue(fullName)}',
+        email = '${escapeSqlValue(email)}',
+        password = '${nextPassword}',
+        role = '${escapeSqlValue(role)}'
       WHERE id = ${id}
     `);
 

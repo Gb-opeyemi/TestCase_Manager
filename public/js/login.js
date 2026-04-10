@@ -38,7 +38,7 @@ if (loginForm && loginMessage) {
         return;
       }
 
-      // This stores sensitive user data in localStorage
+      // This stores only the session details needed by the UI.
       localStorage.setItem(sessionStorageKey, JSON.stringify(data.user));
       window.location.href = data.redirectTo || "/dashboard.html";
     } catch (error) {

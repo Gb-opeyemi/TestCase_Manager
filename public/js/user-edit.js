@@ -20,7 +20,7 @@ function fillForm(user) {
   // This fills the edit form with saved user values.
   editUserForm.fullName.value = user.full_name || "";
   editUserForm.email.value = user.email || "";
-  editUserForm.password.value = user.password || "";
+  editUserForm.password.value = "";
   editUserForm.role.value = user.role || "";
 }
 

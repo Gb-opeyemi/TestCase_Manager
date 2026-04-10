@@ -1,6 +1,8 @@
 const express = require("express");
 
 const { get } = require("../config/database");
+const { verifyPassword } = require("../utils/passwords");
+const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
 
@@ -17,27 +19,26 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // This login query is built from user input and vulnerable to SQL Injection
+    // This loads the user first, then checks the password hash in code.
     const user = await get(`
       SELECT id, full_name, email, password, role
       FROM users
-      WHERE email = '${email}' AND password = '${password}'
+      WHERE email = '${escapeSqlValue(email)}'
     `);
 
-    if (!user) {
+    if (!user || !verifyPassword(password, user.password)) {
       res.status(401).json({
         message: "Invalid email or password.",
       });
       return;
     }
 
-    // This sends the plain text password back to the browser
+    // This sends only the user fields needed by the UI.
     res.json({
       user: {
         id: user.id,
         fullName: user.full_name,
         email: user.email,
-        password: user.password,
         role: user.role,
       },
       redirectTo: "/dashboard.html",

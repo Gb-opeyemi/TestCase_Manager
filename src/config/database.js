@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
+const { hashPassword, isHashedPassword } = require("../utils/passwords");
+const { escapeSqlValue } = require("../utils/sql");
 
 const dataDirectory = path.join(__dirname, "..", "..", "data");
 const databasePath = path.join(dataDirectory, "testcase-manager.sqlite");
@@ -89,24 +91,48 @@ async function seedUsers() {
   }
 
   const users = [
-    // These passwords are stored as plain text.
-    { fullName: "Admin User", email: "admin@testcase.com", password: "admin123", role: "Admin" },
-    { fullName: "Tester User", email: "tester@testcase.com", password: "tester123", role: "Tester" },
-    { fullName: "Developer User", email: "developer@testcase.com", password: "developer123", role: "Developer" },
+    // These starter users are saved with prebuilt password hashes.
+    {
+      fullName: "Admin User",
+      email: "admin@testcase.com",
+      passwordHash:
+        "scrypt$0ccb9f0d199c6d2c80109a5da25c940f$8a49704731f1b59c75f0b1cd2bd2ac0d58c0e8c4b602ff34c7fad0401ee6e1a61c8118a8ba756161b6e02db0727cabf712730934cd14aa639fdf0b386de75620",
+      role: "Admin",
+    },
+    {
+      fullName: "Tester User",
+      email: "tester@testcase.com",
+      passwordHash:
+        "scrypt$231d38eea49c260e0e529375db615618$20b99c5bf9a7172851e9f3ae9c9128336b8baa0854d4971dff95195fd6fc0c5977e5e741a4c64011ff7e252edf9c4529563971307bc8a14d031135d82af410f1",
+      role: "Tester",
+    },
+    {
+      fullName: "Developer User",
+      email: "developer@testcase.com",
+      passwordHash:
+        "scrypt$45e68d9779d3e1764b7421dd8be68dae$8cce8ebe9e7d739600249d76df31c345f6f02bf8122ad994defd93641bac09adee7368c2f60d6f0d6d0239b446ad182c343b069f8bab018e96000bbd5ea220ec",
+      role: "Developer",
+    },
     {
       fullName: "Stakeholder User",
       email: "stakeholder@testcase.com",
-      password: "stakeholder123",
+      passwordHash:
+        "scrypt$3911161abcc3435cebf4d7dda3051dd5$dba328be6f32bd624817d636508b7cc174572931b7ff5221a0e9e20eb73ad2900d7163d95f112bd3bb07b48dbd7cd18c495a8c0a871afc92a7a381e48eedaf0e",
       role: "Stakeholder",
     },
   ];
 
   for (const user of users) {
-    // This is an unsafe raw SQL construction allowing for SQL injection
+    // This saves starter users with hashed passwords.
     await run(
       `
         INSERT INTO users (full_name, email, password, role)
-        VALUES ('${user.fullName}', '${user.email}', '${user.password}', '${user.role}')
+        VALUES (
+          '${escapeSqlValue(user.fullName)}',
+          '${escapeSqlValue(user.email)}',
+          '${user.passwordHash}',
+          '${escapeSqlValue(user.role)}'
+        )
       `
     );
   }
@@ -207,6 +233,26 @@ async function initializeDatabase() {
 
   await seedUsers();
   await seedTestCases();
+  await migratePlainTextPasswords();
+}
+
+async function migratePlainTextPasswords() {
+  // This upgrades old plain passwords after startup.
+  const users = await all("SELECT id, password FROM users");
+
+  for (const user of users) {
+    if (isHashedPassword(user.password)) {
+      continue;
+    }
+
+    const hashedPassword = hashPassword(user.password);
+
+    await run(`
+      UPDATE users
+      SET password = '${hashedPassword}'
+      WHERE id = ${user.id}
+    `);
+  }
 }
 
 module.exports = {
