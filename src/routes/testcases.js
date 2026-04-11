@@ -14,26 +14,30 @@ function readValue(value, fallback = "") {
 router.get("/testcases", async (req, res) => {
   // This builds the list query from the search input.
   const search = readValue(req.query.search);
+  const searchTerm = `%${search}%`;
 
   try {
-    // This search query is vulnerable to SQL Injection
-    const rows = await all(`
-      SELECT
-        id,
-        title,
-        summary,
-        status,
-        priority,
-        severity,
-        created_by,
-        updated_at
-      FROM test_cases
-      WHERE
-        title LIKE '%${search}%'
-        OR status LIKE '%${search}%'
-        OR priority LIKE '%${search}%'
-      ORDER BY id DESC
-    `);
+    // This search uses parameterized queries to avoid SQL Injection.
+    const rows = await all(
+      `
+        SELECT
+          id,
+          title,
+          summary,
+          status,
+          priority,
+          severity,
+          created_by,
+          updated_at
+        FROM test_cases
+        WHERE
+          title LIKE ?
+          OR status LIKE ?
+          OR priority LIKE ?
+        ORDER BY id DESC
+      `,
+      [searchTerm, searchTerm, searchTerm]
+    );
 
     res.json(rows);
   } catch (error) {
@@ -48,11 +52,15 @@ router.get("/testcases/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const testCase = await get(`
-      SELECT *
-      FROM test_cases
-      WHERE id = ${id}
-    `);
+    // This lookup uses a placeholder to avoid SQL Injection.
+    const testCase = await get(
+      `
+        SELECT *
+        FROM test_cases
+        WHERE id = ?
+      `,
+      [id]
+    );
 
     if (!testCase) {
       res.status(404).json({
@@ -95,43 +103,45 @@ router.post("/testcases", requireRole("Admin", "Tester"), async (req, res) => {
 
   try {
     // This saves the new test case record.
-    // This insert query is vulnerable to SQL Injection
-    const result = await run(`
-      INSERT INTO test_cases (
+    // This insert uses parameterized queries to avoid SQL Injection.
+    const result = await run(
+      `
+        INSERT INTO test_cases (
+          title,
+          summary,
+          description,
+          preconditions,
+          steps_to_reproduce,
+          expected_result,
+          actual_result,
+          priority,
+          severity,
+          status,
+          tags,
+          media_url,
+          created_by,
+          updated_by,
+          updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `,
+      [
         title,
         summary,
         description,
         preconditions,
-        steps_to_reproduce,
-        expected_result,
-        actual_result,
+        stepsToReproduce,
+        expectedResult,
+        actualResult,
         priority,
         severity,
         status,
         tags,
-        media_url,
-        created_by,
-        updated_by,
-        updated_at
-      )
-      VALUES (
-        '${title}',
-        '${summary}',
-        '${description}',
-        '${preconditions}',
-        '${stepsToReproduce}',
-        '${expectedResult}',
-        '${actualResult}',
-        '${priority}',
-        '${severity}',
-        '${status}',
-        '${tags}',
-        '${mediaUrl}',
-        '${createdBy}',
-        '${updatedBy}',
-        CURRENT_TIMESTAMP
-      )
-    `);
+        mediaUrl,
+        createdBy,
+        updatedBy,
+      ]
+    );
 
     res.status(201).json({
       id: result.id,
@@ -164,26 +174,46 @@ router.patch("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) 
 
   try {
     // This saves the changed test case record.
-    await run(`
-      UPDATE test_cases
-      SET
-        title = '${title}',
-        summary = '${summary}',
-        description = '${description}',
-        preconditions = '${preconditions}',
-        steps_to_reproduce = '${stepsToReproduce}',
-        expected_result = '${expectedResult}',
-        actual_result = '${actualResult}',
-        priority = '${priority}',
-        severity = '${severity}',
-        status = '${status}',
-        tags = '${tags}',
-        media_url = '${mediaUrl}',
-        created_by = '${createdBy}',
-        updated_by = '${updatedBy}',
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
-    `);
+    // This update uses parameterized queries to avoid SQL Injection.
+    await run(
+      `
+        UPDATE test_cases
+        SET
+          title = ?,
+          summary = ?,
+          description = ?,
+          preconditions = ?,
+          steps_to_reproduce = ?,
+          expected_result = ?,
+          actual_result = ?,
+          priority = ?,
+          severity = ?,
+          status = ?,
+          tags = ?,
+          media_url = ?,
+          created_by = ?,
+          updated_by = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `,
+      [
+        title,
+        summary,
+        description,
+        preconditions,
+        stepsToReproduce,
+        expectedResult,
+        actualResult,
+        priority,
+        severity,
+        status,
+        tags,
+        mediaUrl,
+        createdBy,
+        updatedBy,
+        id,
+      ]
+    );
 
     res.json({
       redirectTo: `/testcase-detail.html?id=${id}`,
@@ -200,10 +230,14 @@ router.delete("/testcases/:id", requireRole("Admin", "Tester"), async (req, res)
   const { id } = req.params;
 
   try {
-    await run(`
-      DELETE FROM test_cases
-      WHERE id = ${id}
-    `);
+    // This delete uses parameterized queries to avoid SQL Injection.
+    await run(
+      `
+        DELETE FROM test_cases
+        WHERE id = ?
+      `,
+      [id]
+    );
 
     res.json({
       redirectTo: "/testcases.html",

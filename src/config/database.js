@@ -2,7 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 const { hashPassword, isHashedPassword } = require("../utils/passwords");
-const { escapeSqlValue } = require("../utils/sql");
 
 const dataDirectory = path.join(__dirname, "..", "..", "data");
 const databasePath = path.join(dataDirectory, "testcase-manager.sqlite");
@@ -18,11 +17,12 @@ function connectDatabase() {
   return new sqlite3.Database(databasePath);
 }
 
-function run(query) {
+function run(query, params = []) {
   return new Promise((resolve, reject) => {
     const db = connectDatabase();
 
-    db.run(query, function onRun(error) {
+    // This runs the SQL with separate parameter values.
+    db.run(query, params, function onRun(error) {
       db.close();
 
       if (error) {
@@ -38,11 +38,12 @@ function run(query) {
   });
 }
 
-function get(query) {
+function get(query, params = []) {
   return new Promise((resolve, reject) => {
     const db = connectDatabase();
 
-    db.get(query, (error, row) => {
+    // This reads one row with separate parameter values.
+    db.get(query, params, (error, row) => {
       db.close();
 
       if (error) {
@@ -55,11 +56,12 @@ function get(query) {
   });
 }
 
-function all(query) {
+function all(query, params = []) {
   return new Promise((resolve, reject) => {
     const db = connectDatabase();
 
-    db.all(query, (error, rows) => {
+    // This reads many rows with separate parameter values.
+    db.all(query, params, (error, rows) => {
       db.close();
 
       if (error) {
@@ -124,16 +126,13 @@ async function seedUsers() {
 
   for (const user of users) {
     // This saves starter users with hashed passwords.
+    // This insert uses parameterized queries to avoid SQL Injection.
     await run(
       `
         INSERT INTO users (full_name, email, password, role)
-        VALUES (
-          '${escapeSqlValue(user.fullName)}',
-          '${escapeSqlValue(user.email)}',
-          '${user.passwordHash}',
-          '${escapeSqlValue(user.role)}'
-        )
-      `
+        VALUES (?, ?, ?, ?)
+      `,
+      [user.fullName, user.email, user.passwordHash, user.role]
     );
   }
 }
@@ -165,19 +164,20 @@ async function seedTestCases() {
 
   for (const testCase of testCases) {
     // This adds starter test case records.
-    // This is an unsafe raw SQL construction allowing for SQL injection
+    // This insert uses parameterized queries to avoid SQL Injection.
     await run(
       `
         INSERT INTO test_cases (title, summary, status, priority, created_by, updated_by)
-        VALUES (
-          '${testCase.title}',
-          '${testCase.summary}',
-          '${testCase.status}',
-          '${testCase.priority}',
-          '${testCase.createdBy}',
-          '${testCase.createdBy}'
-        )
-      `
+        VALUES (?, ?, ?, ?, ?, ?)
+      `,
+      [
+        testCase.title,
+        testCase.summary,
+        testCase.status,
+        testCase.priority,
+        testCase.createdBy,
+        testCase.createdBy,
+      ]
     );
   }
 }
@@ -247,11 +247,15 @@ async function migratePlainTextPasswords() {
 
     const hashedPassword = hashPassword(user.password);
 
-    await run(`
-      UPDATE users
-      SET password = '${hashedPassword}'
-      WHERE id = ${user.id}
-    `);
+    // This update uses parameterized queries to avoid SQL Injection.
+    await run(
+      `
+        UPDATE users
+        SET password = ?
+        WHERE id = ?
+      `,
+      [hashedPassword, user.id]
+    );
   }
 }
 

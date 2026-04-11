@@ -2,7 +2,6 @@ const express = require("express");
 
 const { get } = require("../config/database");
 const { verifyPassword } = require("../utils/passwords");
-const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
 
@@ -20,11 +19,15 @@ router.post("/login", async (req, res) => {
 
   try {
     // This loads the user first, then checks the password hash in code.
-    const user = await get(`
-      SELECT id, full_name, email, password, role
-      FROM users
-      WHERE email = '${escapeSqlValue(email)}'
-    `);
+    // This query uses parameterized queries to avoid SQL Injection.
+    const user = await get(
+      `
+        SELECT id, full_name, email, password, role
+        FROM users
+        WHERE email = ?
+      `,
+      [email]
+    );
 
     if (!user || !verifyPassword(password, user.password)) {
       res.status(401).json({

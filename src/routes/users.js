@@ -3,7 +3,6 @@ const express = require("express");
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireRole } = require("../middleware/auth");
 const { hashPassword } = require("../utils/passwords");
-const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
 
@@ -36,11 +35,15 @@ router.get("/users/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await get(`
-      SELECT id, full_name, email, role, created_at
-      FROM users
-      WHERE id = ${id}
-    `);
+    // This lookup uses parameterized queries to avoid SQL Injection.
+    const user = await get(
+      `
+        SELECT id, full_name, email, role, created_at
+        FROM users
+        WHERE id = ?
+      `,
+      [id]
+    );
 
     if (!user) {
       res.status(404).json({
@@ -73,15 +76,14 @@ router.post("/users", async (req, res) => {
 
   try {
     // This hashes the password before saving the new user.
-    const result = await run(`
-      INSERT INTO users (full_name, email, password, role)
-      VALUES (
-        '${escapeSqlValue(fullName)}',
-        '${escapeSqlValue(email)}',
-        '${hashPassword(password)}',
-        '${escapeSqlValue(role)}'
-      )
-    `);
+    // This insert uses parameterized queries to avoid SQL Injection.
+    const result = await run(
+      `
+        INSERT INTO users (full_name, email, password, role)
+        VALUES (?, ?, ?, ?)
+      `,
+      [fullName, email, hashPassword(password), role]
+    );
 
     res.status(201).json({
       id: result.id,
@@ -110,11 +112,15 @@ router.patch("/users/:id", async (req, res) => {
   }
 
   try {
-    const savedUser = await get(`
-      SELECT password
-      FROM users
-      WHERE id = ${id}
-    `);
+    // This lookup uses parameterized queries to avoid SQL Injection.
+    const savedUser = await get(
+      `
+        SELECT password
+        FROM users
+        WHERE id = ?
+      `,
+      [id]
+    );
 
     if (!savedUser) {
       res.status(404).json({
@@ -126,15 +132,19 @@ router.patch("/users/:id", async (req, res) => {
     // This keeps the old password unless a new one is entered.
     const nextPassword = password ? hashPassword(password) : savedUser.password;
 
-    await run(`
-      UPDATE users
-      SET
-        full_name = '${escapeSqlValue(fullName)}',
-        email = '${escapeSqlValue(email)}',
-        password = '${nextPassword}',
-        role = '${escapeSqlValue(role)}'
-      WHERE id = ${id}
-    `);
+    // This update uses parameterized queries to avoid SQL Injection.
+    await run(
+      `
+        UPDATE users
+        SET
+          full_name = ?,
+          email = ?,
+          password = ?,
+          role = ?
+        WHERE id = ?
+      `,
+      [fullName, email, nextPassword, role, id]
+    );
 
     res.json({
       message: "User updated successfully.",
@@ -151,10 +161,14 @@ router.delete("/users/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    await run(`
-      DELETE FROM users
-      WHERE id = ${id}
-    `);
+    // This delete uses parameterized queries to avoid SQL Injection.
+    await run(
+      `
+        DELETE FROM users
+        WHERE id = ?
+      `,
+      [id]
+    );
 
     res.json({
       message: "User deleted successfully.",
