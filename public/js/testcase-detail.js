@@ -23,67 +23,93 @@ function isVideo(url = "") {
 
 function renderMedia(url) {
   if (!url) {
-    return "";
+    return null;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return null;
+    }
+  } catch (error) {
+    return null;
   }
 
   if (isVideo(url)) {
-    return `
-      <video class="media-preview" controls>
-        <source src="${url}" />
-      </video>
-    `;
+    const video = document.createElement("video");
+    video.className = "media-preview";
+    video.controls = true;
+
+    const source = document.createElement("source");
+    source.src = url;
+    video.appendChild(source);
+    return video;
   }
 
-  return `<img class="media-preview" src="${url}" alt="Test case media" />`;
+  const image = document.createElement("img");
+  image.className = "media-preview";
+  image.src = url;
+  image.alt = "Test case media";
+  return image;
+}
+
+function createDetailCard(title, value, options = {}) {
+  // This builds one detail card with safe text content.
+  const card = document.createElement("article");
+  card.className = "detail-card";
+
+  const heading = document.createElement("h3");
+  heading.textContent = title;
+  card.appendChild(heading);
+
+  if (options.mediaUrl) {
+    const mediaPreview = renderMedia(options.mediaUrl);
+
+    if (mediaPreview) {
+      card.appendChild(mediaPreview);
+    }
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => {
+      const line = document.createElement("p");
+      line.textContent = item;
+      card.appendChild(line);
+    });
+    return card;
+  }
+
+  const text = document.createElement("p");
+  text.textContent = value || "";
+  card.appendChild(text);
+  return card;
 }
 
 function renderDetail(testCase) {
   // This prints the test case fields on the page.
-  detailTitle.innerHTML = testCase.title || "Test case";
+  detailTitle.textContent = testCase.title || "Test case";
   detailSubtitle.textContent = `${testCase.status || "Pending"} · Updated ${formatDate(testCase.updated_at)}`;
   editButton.href = `/testcase-edit.html?id=${testCase.id}`;
 
-  // Using innerHTML to render content allows stored XSS
-  detailSections.innerHTML = `
-    <article class="detail-card">
-      <h3>Summary</h3>
-      <p>${testCase.summary || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Description</h3>
-      <p>${testCase.description || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Preconditions</h3>
-      <p>${testCase.preconditions || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Steps to reproduce</h3>
-      <p>${testCase.steps_to_reproduce || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Expected result</h3>
-      <p>${testCase.expected_result || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Actual result</h3>
-      <p>${testCase.actual_result || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Media</h3>
-      ${renderMedia(testCase.media_url)}
-      <p>${testCase.media_url || ""}</p>
-    </article>
-    <article class="detail-card">
-      <h3>Meta</h3>
-      <p>Status: ${testCase.status || ""}</p>
-      <p>Priority: ${testCase.priority || ""}</p>
-      <p>Severity: ${testCase.severity || ""}</p>
-      <p>Tags: ${testCase.tags || ""}</p>
-      <p>Created by: ${testCase.created_by || ""}</p>
-      <p>Updated by: ${testCase.updated_by || ""}</p>
-    </article>
-  `;
+  detailSections.innerHTML = "";
+  detailSections.appendChild(createDetailCard("Summary", testCase.summary || ""));
+  detailSections.appendChild(createDetailCard("Description", testCase.description || ""));
+  detailSections.appendChild(createDetailCard("Preconditions", testCase.preconditions || ""));
+  detailSections.appendChild(createDetailCard("Steps to reproduce", testCase.steps_to_reproduce || ""));
+  detailSections.appendChild(createDetailCard("Expected result", testCase.expected_result || ""));
+  detailSections.appendChild(createDetailCard("Actual result", testCase.actual_result || ""));
+  detailSections.appendChild(createDetailCard("Media", testCase.media_url || "", { mediaUrl: testCase.media_url }));
+  detailSections.appendChild(
+    createDetailCard("Meta", [
+      `Status: ${testCase.status || ""}`,
+      `Priority: ${testCase.priority || ""}`,
+      `Severity: ${testCase.severity || ""}`,
+      `Tags: ${testCase.tags || ""}`,
+      `Created by: ${testCase.created_by || ""}`,
+      `Updated by: ${testCase.updated_by || ""}`,
+    ])
+  );
 }
 
 function renderComments(comments) {
@@ -91,21 +117,31 @@ function renderComments(comments) {
   commentsList.innerHTML = "";
 
   if (!comments.length) {
-    commentsList.innerHTML = '<p class="inline-message">No comments yet.</p>';
+    const emptyState = document.createElement("p");
+    emptyState.className = "inline-message";
+    emptyState.textContent = "No comments yet.";
+    commentsList.appendChild(emptyState);
     return;
   }
 
   comments.forEach((comment) => {
     const item = document.createElement("article");
     item.className = "comment-item";
-   // Using innerHTML to render content allows stored XSS
-    item.innerHTML = `
-      <div class="comment-meta">
-        <strong>${comment.author_email || "Unknown user"}</strong>
-        <span>${formatDate(comment.created_at)}</span>
-      </div>
-      <p>${comment.content}</p>
-    `;
+
+    const meta = document.createElement("div");
+    meta.className = "comment-meta";
+
+    const author = document.createElement("strong");
+    author.textContent = comment.author_email || "Unknown user";
+
+    const timestamp = document.createElement("span");
+    timestamp.textContent = formatDate(comment.created_at);
+
+    const content = document.createElement("p");
+    content.textContent = comment.content || "";
+
+    meta.append(author, timestamp);
+    item.append(meta, content);
     commentsList.appendChild(item);
   });
 }

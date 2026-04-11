@@ -7,15 +7,31 @@ function renderUsers(users) {
 
   users.forEach((user) => {
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${user.full_name}</td>
-      <td>${user.email}</td>
-      <td>${user.role}</td>
-      <td class="table-actions">
-        <a class="button button-secondary table-action-button" href="/user-edit.html?id=${user.id}">Edit</a>
-        <button class="button button-danger table-action-button table-delete-button" data-id="${user.id}" type="button">Delete</button>
-      </td>
-    `;
+    const nameCell = document.createElement("td");
+    nameCell.textContent = user.full_name || "";
+
+    const emailCell = document.createElement("td");
+    emailCell.textContent = user.email || "";
+
+    const roleCell = document.createElement("td");
+    roleCell.textContent = user.role || "";
+
+    const actionsCell = document.createElement("td");
+    actionsCell.className = "table-actions";
+
+    const editLink = document.createElement("a");
+    editLink.className = "button button-secondary table-action-button";
+    editLink.href = `/user-edit.html?id=${user.id}`;
+    editLink.textContent = "Edit";
+
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "button button-danger table-action-button table-delete-button";
+    deleteButton.dataset.id = user.id;
+    deleteButton.type = "button";
+    deleteButton.textContent = "Delete";
+
+    actionsCell.append(editLink, deleteButton);
+    row.append(nameCell, emailCell, roleCell, actionsCell);
     usersTableBody.appendChild(row);
   });
 }

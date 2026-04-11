@@ -3,15 +3,19 @@ const express = require("express");
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireRole } = require("../middleware/auth");
 const { hashPassword } = require("../utils/passwords");
+const {
+  ROLE_OPTIONS,
+  hasMaxLength,
+  isValidEmail,
+  isValidId,
+  isValidOption,
+  readValue,
+} = require("../utils/validation");
 
 const router = express.Router();
 
 router.use(requireAuthenticated);
 router.use(requireRole("Admin"));
-
-function readValue(value, fallback = "") {
-  return value?.toString().trim() || fallback;
-}
 
 router.get("/users", async (req, res) => {
   // This loads all users for the table.
@@ -33,6 +37,13 @@ router.get("/users", async (req, res) => {
 router.get("/users/:id", async (req, res) => {
   // This loads one user by id.
   const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "User id is invalid.",
+    });
+    return;
+  }
 
   try {
     // This lookup uses parameterized queries to avoid SQL Injection.
@@ -74,6 +85,34 @@ router.post("/users", async (req, res) => {
     return;
   }
 
+  if (!hasMaxLength(fullName, 100)) {
+    res.status(400).json({
+      message: "Name is too long.",
+    });
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    res.status(400).json({
+      message: "Email is invalid.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(password, 100) || password.length < 6) {
+    res.status(400).json({
+      message: "Password must be at least 6 characters.",
+    });
+    return;
+  }
+
+  if (!isValidOption(role, ROLE_OPTIONS)) {
+    res.status(400).json({
+      message: "Role is invalid.",
+    });
+    return;
+  }
+
   try {
     // This hashes the password before saving the new user.
     // This insert uses parameterized queries to avoid SQL Injection.
@@ -107,6 +146,41 @@ router.patch("/users/:id", async (req, res) => {
   if (!fullName || !email || !role) {
     res.status(400).json({
       message: "Name, email, and role are required.",
+    });
+    return;
+  }
+
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "User id is invalid.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(fullName, 100)) {
+    res.status(400).json({
+      message: "Name is too long.",
+    });
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    res.status(400).json({
+      message: "Email is invalid.",
+    });
+    return;
+  }
+
+  if (password && (!hasMaxLength(password, 100) || password.length < 6)) {
+    res.status(400).json({
+      message: "Password must be at least 6 characters.",
+    });
+    return;
+  }
+
+  if (!isValidOption(role, ROLE_OPTIONS)) {
+    res.status(400).json({
+      message: "Role is invalid.",
     });
     return;
   }
@@ -159,6 +233,13 @@ router.patch("/users/:id", async (req, res) => {
 router.delete("/users/:id", async (req, res) => {
   // This removes a user by id.
   const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "User id is invalid.",
+    });
+    return;
+  }
 
   try {
     // This delete uses parameterized queries to avoid SQL Injection.

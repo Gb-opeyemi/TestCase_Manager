@@ -2,17 +2,18 @@ const express = require("express");
 
 const { get } = require("../config/database");
 const { verifyPassword } = require("../utils/passwords");
+const { isValidEmail, readValue } = require("../utils/validation");
 
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
   // This reads the login form values.
-  const email = req.body.email?.trim().toLowerCase();
-  const password = req.body.password?.trim();
+  const email = readValue(req.body.email).toLowerCase();
+  const password = readValue(req.body.password);
 
-  if (!email || !password) {
+  if (!email || !password || !isValidEmail(email)) {
     res.status(400).json({
-      message: "Email and password are required.",
+      message: "Enter a valid email and password.",
     });
     return;
   }

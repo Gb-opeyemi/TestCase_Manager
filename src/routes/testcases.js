@@ -2,19 +2,32 @@ const express = require("express");
 
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireRole } = require("../middleware/auth");
+const {
+  LEVEL_OPTIONS,
+  STATUS_OPTIONS,
+  hasMaxLength,
+  isValidEmail,
+  isValidId,
+  isValidMediaUrl,
+  isValidOption,
+  readValue,
+} = require("../utils/validation");
 
 const router = express.Router();
 
 router.use(requireAuthenticated);
 
-function readValue(value, fallback = "") {
-  return value?.toString().trim() || fallback;
-}
-
 router.get("/testcases", async (req, res) => {
   // This builds the list query from the search input.
   const search = readValue(req.query.search);
   const searchTerm = `%${search}%`;
+
+  if (!hasMaxLength(search, 100)) {
+    res.status(400).json({
+      message: "Search text is too long.",
+    });
+    return;
+  }
 
   try {
     // This search uses parameterized queries to avoid SQL Injection.
@@ -50,6 +63,13 @@ router.get("/testcases", async (req, res) => {
 router.get("/testcases/:id", async (req, res) => {
   // This loads a test case by its id.
   const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "Test case id is invalid.",
+    });
+    return;
+  }
 
   try {
     // This lookup uses a placeholder to avoid SQL Injection.
@@ -97,6 +117,69 @@ router.post("/testcases", requireRole("Admin", "Tester"), async (req, res) => {
   if (!title) {
     res.status(400).json({
       message: "Title is required.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(title, 150)) {
+    res.status(400).json({
+      message: "Title is too long.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(summary, 255)) {
+    res.status(400).json({
+      message: "Summary is too long.",
+    });
+    return;
+  }
+
+  if (
+    !hasMaxLength(description, 5000)
+    || !hasMaxLength(preconditions, 3000)
+    || !hasMaxLength(stepsToReproduce, 5000)
+    || !hasMaxLength(expectedResult, 3000)
+    || !hasMaxLength(actualResult, 3000)
+    || !hasMaxLength(tags, 255)
+  ) {
+    res.status(400).json({
+      message: "One or more fields are too long.",
+    });
+    return;
+  }
+
+  if (!isValidOption(status, STATUS_OPTIONS)) {
+    res.status(400).json({
+      message: "Status is invalid.",
+    });
+    return;
+  }
+
+  if (!isValidOption(priority, LEVEL_OPTIONS) || !isValidOption(severity, LEVEL_OPTIONS)) {
+    res.status(400).json({
+      message: "Priority or severity is invalid.",
+    });
+    return;
+  }
+
+  if (createdBy && !isValidEmail(createdBy)) {
+    res.status(400).json({
+      message: "Created by must be a valid email.",
+    });
+    return;
+  }
+
+  if (updatedBy && !isValidEmail(updatedBy)) {
+    res.status(400).json({
+      message: "Updated by must be a valid email.",
+    });
+    return;
+  }
+
+  if (mediaUrl && !isValidMediaUrl(mediaUrl)) {
+    res.status(400).json({
+      message: "Media link must use http or https.",
     });
     return;
   }
@@ -172,6 +255,83 @@ router.patch("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) 
   const createdBy = readValue(req.body.createdBy);
   const updatedBy = readValue(req.body.updatedBy, createdBy);
 
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "Test case id is invalid.",
+    });
+    return;
+  }
+
+  if (!title) {
+    res.status(400).json({
+      message: "Title is required.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(title, 150)) {
+    res.status(400).json({
+      message: "Title is too long.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(summary, 255)) {
+    res.status(400).json({
+      message: "Summary is too long.",
+    });
+    return;
+  }
+
+  if (
+    !hasMaxLength(description, 5000)
+    || !hasMaxLength(preconditions, 3000)
+    || !hasMaxLength(stepsToReproduce, 5000)
+    || !hasMaxLength(expectedResult, 3000)
+    || !hasMaxLength(actualResult, 3000)
+    || !hasMaxLength(tags, 255)
+  ) {
+    res.status(400).json({
+      message: "One or more fields are too long.",
+    });
+    return;
+  }
+
+  if (!isValidOption(status, STATUS_OPTIONS)) {
+    res.status(400).json({
+      message: "Status is invalid.",
+    });
+    return;
+  }
+
+  if (!isValidOption(priority, LEVEL_OPTIONS) || !isValidOption(severity, LEVEL_OPTIONS)) {
+    res.status(400).json({
+      message: "Priority or severity is invalid.",
+    });
+    return;
+  }
+
+  if (createdBy && !isValidEmail(createdBy)) {
+    res.status(400).json({
+      message: "Created by must be a valid email.",
+    });
+    return;
+  }
+
+  if (updatedBy && !isValidEmail(updatedBy)) {
+    res.status(400).json({
+      message: "Updated by must be a valid email.",
+    });
+    return;
+  }
+
+  if (mediaUrl && !isValidMediaUrl(mediaUrl)) {
+    res.status(400).json({
+      message: "Media link must use http or https.",
+    });
+    return;
+  }
+
   try {
     // This saves the changed test case record.
     // This update uses parameterized queries to avoid SQL Injection.
@@ -228,6 +388,13 @@ router.patch("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) 
 router.delete("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) => {
   // This removes a test case by its id.
   const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "Test case id is invalid.",
+    });
+    return;
+  }
 
   try {
     // This delete uses parameterized queries to avoid SQL Injection.

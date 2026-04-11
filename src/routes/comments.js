@@ -2,18 +2,22 @@ const express = require("express");
 
 const { all, run } = require("../config/database");
 const { requireAuthenticated } = require("../middleware/auth");
+const { hasMaxLength, isValidEmail, isValidId, readValue } = require("../utils/validation");
 
 const router = express.Router();
 
 router.use(requireAuthenticated);
 
-function readValue(value, fallback = "") {
-  return value?.toString().trim() || fallback;
-}
-
 router.get("/testcases/:id/comments", async (req, res) => {
   // This loads the comments for a test case.
   const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "Test case id is invalid.",
+    });
+    return;
+  }
 
   try {
     // This lookup uses parameterized queries to avoid SQL Injection.
@@ -41,9 +45,30 @@ router.post("/testcases/:id/comments", async (req, res) => {
   const authorEmail = readValue(req.body.authorEmail);
   const content = readValue(req.body.content);
 
+  if (!isValidId(id)) {
+    res.status(400).json({
+      message: "Test case id is invalid.",
+    });
+    return;
+  }
+
   if (!content) {
     res.status(400).json({
       message: "Comment is required.",
+    });
+    return;
+  }
+
+  if (authorEmail && !isValidEmail(authorEmail)) {
+    res.status(400).json({
+      message: "Author email is invalid.",
+    });
+    return;
+  }
+
+  if (!hasMaxLength(content, 1000)) {
+    res.status(400).json({
+      message: "Comment is too long.",
     });
     return;
   }

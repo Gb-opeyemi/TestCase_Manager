@@ -25,17 +25,29 @@ function renderRows(testCases) {
 
   testCases.forEach((testCase) => {
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>
-        <a class="table-link" href="/testcase-detail.html?id=${testCase.id}">
-          ${testCase.title}
-        </a>
-      </td>
-      <td><span class="status-badge">${testCase.status || ""}</span></td>
-      <td>${testCase.priority || ""}</td>
-      <td>${testCase.severity || ""}</td>
-      <td>${formatDate(testCase.updated_at)}</td>
-    `;
+    const titleCell = document.createElement("td");
+    const titleLink = document.createElement("a");
+    titleLink.className = "table-link";
+    titleLink.href = `/testcase-detail.html?id=${testCase.id}`;
+    titleLink.textContent = testCase.title || "";
+    titleCell.appendChild(titleLink);
+
+    const statusCell = document.createElement("td");
+    const statusBadge = document.createElement("span");
+    statusBadge.className = "status-badge";
+    statusBadge.textContent = testCase.status || "";
+    statusCell.appendChild(statusBadge);
+
+    const priorityCell = document.createElement("td");
+    priorityCell.textContent = testCase.priority || "";
+
+    const severityCell = document.createElement("td");
+    severityCell.textContent = testCase.severity || "";
+
+    const updatedCell = document.createElement("td");
+    updatedCell.textContent = formatDate(testCase.updated_at);
+
+    row.append(titleCell, statusCell, priorityCell, severityCell, updatedCell);
 
     tableBody.appendChild(row);
   });
@@ -56,7 +68,7 @@ async function loadTestCases(search = "") {
   listMessage.textContent = "Loading test cases...";
 
   try {
-    const response = await fetch(`/testcases?search=${search}`);
+    const response = await fetch(`/testcases?search=${encodeURIComponent(search)}`);
     const data = await response.json();
     renderRows(data);
   } catch (error) {
