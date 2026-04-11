@@ -8,6 +8,7 @@ const commentRoutes = require("./routes/comments");
 const dashboardRoutes = require("./routes/dashboard");
 const testCaseRoutes = require("./routes/testcases");
 const userRoutes = require("./routes/users");
+const { ensureCsrfToken } = require("./middleware/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ app.use(
     },
   })
 );
+app.use(ensureCsrfToken);
 app.use(express.static(publicDirectory));
 app.use(authRoutes);
 app.use(commentRoutes);

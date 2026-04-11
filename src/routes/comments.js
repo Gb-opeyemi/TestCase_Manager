@@ -1,7 +1,7 @@
 const express = require("express");
 
 const { all, run } = require("../config/database");
-const { requireAuthenticated } = require("../middleware/auth");
+const { requireAuthenticated, requireCsrfToken } = require("../middleware/auth");
 const { hasMaxLength, isValidEmail, isValidId, readValue } = require("../utils/validation");
 
 const router = express.Router();
@@ -39,7 +39,7 @@ router.get("/testcases/:id/comments", async (req, res) => {
   }
 });
 
-router.post("/testcases/:id/comments", async (req, res) => {
+router.post("/testcases/:id/comments", requireCsrfToken, async (req, res) => {
   // This saves a new comment for a test case.
   const { id } = req.params;
   const authorEmail = readValue(req.body.authorEmail);
@@ -74,7 +74,6 @@ router.post("/testcases/:id/comments", async (req, res) => {
   }
 
   try {
-    // This comment insert has no CSRF protection
     // This insert uses parameterized queries to avoid SQL Injection.
     await run(
       `

@@ -1,7 +1,7 @@
 const express = require("express");
 
 const { all, get, run } = require("../config/database");
-const { requireAuthenticated, requireRole } = require("../middleware/auth");
+const { requireAuthenticated, requireCsrfToken, requireRole } = require("../middleware/auth");
 const { hashPassword } = require("../utils/passwords");
 const {
   ROLE_OPTIONS,
@@ -71,7 +71,7 @@ router.get("/users/:id", async (req, res) => {
   }
 });
 
-router.post("/users", async (req, res) => {
+router.post("/users", requireCsrfToken, async (req, res) => {
   // This creates a new user from the form data.
   const fullName = readValue(req.body.fullName);
   const email = readValue(req.body.email).toLowerCase();
@@ -135,7 +135,7 @@ router.post("/users", async (req, res) => {
   }
 });
 
-router.patch("/users/:id", async (req, res) => {
+router.patch("/users/:id", requireCsrfToken, async (req, res) => {
   // This updates the selected user.
   const { id } = req.params;
   const fullName = readValue(req.body.fullName);
@@ -230,7 +230,7 @@ router.patch("/users/:id", async (req, res) => {
   }
 });
 
-router.delete("/users/:id", async (req, res) => {
+router.delete("/users/:id", requireCsrfToken, async (req, res) => {
   // This removes a user by id.
   const { id } = req.params;
 

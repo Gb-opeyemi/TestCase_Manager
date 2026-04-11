@@ -40,7 +40,7 @@ if (createForm) {
     const payload = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch("/testcases", {
+      const response = await window.csrfFetch("/testcases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -63,7 +63,7 @@ if (editUserForm) {
     const payload = Object.fromEntries(new FormData(editUserForm).entries());
 
     try {
-      const response = await fetch(`/users/${userId}`, {
+      const response = await window.csrfFetch(`/users/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

@@ -1,6 +1,7 @@
 const express = require("express");
 
 const { get } = require("../config/database");
+const { requireCsrfToken } = require("../middleware/auth");
 const { verifyPassword } = require("../utils/passwords");
 const { isValidEmail, readValue } = require("../utils/validation");
 
@@ -44,7 +45,6 @@ router.post("/login", async (req, res) => {
       email: user.email,
       role: user.role,
     };
-
     req.session.save((sessionError) => {
       if (sessionError) {
         res.status(500).json({
@@ -76,10 +76,11 @@ router.get("/api/session", (req, res) => {
 
   res.json({
     user: req.session.user,
+    csrfToken: req.session.csrfToken,
   });
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout", requireCsrfToken, (req, res) => {
   // This clears the current session from the server.
   req.session.destroy((error) => {
     if (error) {

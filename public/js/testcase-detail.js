@@ -218,8 +218,8 @@ if (commentForm) {
         return;
       }
 
-      // This comment request has no CSRF protection.
-      const response = await fetch(`/testcases/${testCaseId}/comments`, {
+      // This comment request has CSRF protection.
+      const response = await window.csrfFetch(`/testcases/${testCaseId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -262,8 +262,8 @@ if (deleteButton) {
   deleteButton.addEventListener("click", async () => {
     // This sends the delete request to the API.
     try {
-      // This delete request has no CSRF protection.
-      const response = await fetch(`/testcases/${testCaseId}`, {
+      // This delete request has CSRF protection.
+      const response = await window.csrfFetch(`/testcases/${testCaseId}`, {
         method: "DELETE",
       });
 

@@ -1,5 +1,6 @@
 let currentUser = null;
 let currentUserRequest = null;
+let csrfToken = null;
 
 async function loadCurrentUser(force = false) {
   // This loads the signed-in user from the server.
@@ -16,10 +17,12 @@ async function loadCurrentUser(force = false) {
 
       const data = await response.json();
       currentUser = data.user || null;
+      csrfToken = data.csrfToken || null;
       return currentUser;
     })
     .catch(() => {
       currentUser = null;
+      csrfToken = null;
       return null;
     });
 
@@ -46,14 +49,41 @@ async function requireCurrentUser() {
 async function logoutUser() {
   // This asks the server to end the current session.
   try {
-    await fetch("/logout", {
+    await csrfFetch("/logout", {
       method: "POST",
     });
   } finally {
     currentUser = null;
     currentUserRequest = null;
+    csrfToken = null;
     window.location.href = "/login.html";
   }
+}
+
+async function getCsrfToken() {
+  // This loads the current CSRF token from the session.
+  if (csrfToken) {
+    return csrfToken;
+  }
+
+  await loadCurrentUser(true);
+  return csrfToken;
+}
+
+async function csrfFetch(url, options = {}) {
+  // This adds the CSRF token to write requests.
+  const requestOptions = { ...options };
+  const method = (requestOptions.method || "GET").toUpperCase();
+
+  if (["POST", "PATCH", "PUT", "DELETE"].includes(method)) {
+    const token = await getCsrfToken();
+    requestOptions.headers = {
+      ...(requestOptions.headers || {}),
+      "x-csrf-token": token || "",
+    };
+  }
+
+  return fetch(url, requestOptions);
 }
 
 function canManageTestCases(user) {
@@ -68,6 +98,7 @@ function canCommentOnTestCases(user) {
 
 window.getCurrentUser = getCurrentUser;
 window.loadCurrentUser = loadCurrentUser;
+window.csrfFetch = csrfFetch;
 window.logoutUser = logoutUser;
 window.requireCurrentUser = requireCurrentUser;
 window.canManageTestCases = canManageTestCases;

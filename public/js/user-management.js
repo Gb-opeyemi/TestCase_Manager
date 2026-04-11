@@ -83,7 +83,7 @@ if (createUserForm) {
     const payload = Object.fromEntries(new FormData(createUserForm).entries());
 
     try {
-      const response = await fetch("/users", {
+      const response = await window.csrfFetch("/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +130,7 @@ if (usersTableBody) {
     }
 
     try {
-      const response = await fetch(`/users/${userId}`, {
+      const response = await window.csrfFetch(`/users/${userId}`, {
         method: "DELETE",
       });
 

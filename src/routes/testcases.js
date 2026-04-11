@@ -1,7 +1,7 @@
 const express = require("express");
 
 const { all, get, run } = require("../config/database");
-const { requireAuthenticated, requireRole } = require("../middleware/auth");
+const { requireAuthenticated, requireCsrfToken, requireRole } = require("../middleware/auth");
 const {
   LEVEL_OPTIONS,
   STATUS_OPTIONS,
@@ -97,7 +97,7 @@ router.get("/testcases/:id", async (req, res) => {
   }
 });
 
-router.post("/testcases", requireRole("Admin", "Tester"), async (req, res) => {
+router.post("/testcases", requireCsrfToken, requireRole("Admin", "Tester"), async (req, res) => {
   // This builds the insert query from the form values.
   const title = readValue(req.body.title);
   const summary = readValue(req.body.summary);
@@ -237,7 +237,7 @@ router.post("/testcases", requireRole("Admin", "Tester"), async (req, res) => {
   }
 });
 
-router.patch("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) => {
+router.patch("/testcases/:id", requireCsrfToken, requireRole("Admin", "Tester"), async (req, res) => {
   // This updates a test case with the new form values.
   const { id } = req.params;
   const title = readValue(req.body.title);
@@ -385,7 +385,7 @@ router.patch("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) 
   }
 });
 
-router.delete("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) => {
+router.delete("/testcases/:id", requireCsrfToken, requireRole("Admin", "Tester"), async (req, res) => {
   // This removes a test case by its id.
   const { id } = req.params;
 
