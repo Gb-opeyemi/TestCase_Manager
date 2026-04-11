@@ -1,13 +1,14 @@
 const express = require("express");
 
 const { all, get, run } = require("../config/database");
-const { requireAuthenticated } = require("../middleware/auth");
+const { requireAuthenticated, requireRole } = require("../middleware/auth");
 const { hashPassword } = require("../utils/passwords");
 const { escapeSqlValue } = require("../utils/sql");
 
 const router = express.Router();
 
 router.use(requireAuthenticated);
+router.use(requireRole("Admin"));
 
 function readValue(value, fallback = "") {
   return value?.toString().trim() || fallback;
@@ -16,7 +17,6 @@ function readValue(value, fallback = "") {
 router.get("/users", async (req, res) => {
   // This loads all users for the table.
   try {
-    // This route has no backend role validation
     const users = await all(`
       SELECT id, full_name, email, role, created_at
       FROM users
@@ -36,7 +36,6 @@ router.get("/users/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // This direct object lookup allows IDOR
     const user = await get(`
       SELECT id, full_name, email, role, created_at
       FROM users
@@ -127,7 +126,6 @@ router.patch("/users/:id", async (req, res) => {
     // This keeps the old password unless a new one is entered.
     const nextPassword = password ? hashPassword(password) : savedUser.password;
 
-    // This update has no backend role validation
     await run(`
       UPDATE users
       SET
@@ -153,7 +151,6 @@ router.delete("/users/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // This delete has no backend role validation
     await run(`
       DELETE FROM users
       WHERE id = ${id}

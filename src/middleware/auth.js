@@ -10,6 +10,23 @@ function requireAuthenticated(req, res, next) {
   next();
 }
 
+function requireRole(...allowedRoles) {
+  // This blocks requests when the user role is not allowed.
+  return (req, res, next) => {
+    const userRole = req.session?.user?.role;
+
+    if (!userRole || !allowedRoles.includes(userRole)) {
+      res.status(403).json({
+        message: "You do not have permission to perform this action.",
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
 module.exports = {
   requireAuthenticated,
+  requireRole,
 };

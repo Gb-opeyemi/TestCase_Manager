@@ -17,6 +17,12 @@ async function loadUser() {
     return;
   }
 
+  if (currentUser.role !== "Admin") {
+    window.showNotification("You do not have access to this page.", "error");
+    window.location.href = "/dashboard.html";
+    return;
+  }
+
   if (!userId) {
     window.showNotification("User not found.", "error");
     return;
@@ -46,6 +52,11 @@ if (editUserForm) {
     const currentUser = await window.requireCurrentUser();
 
     if (!currentUser) {
+      return;
+    }
+
+    if (currentUser.role !== "Admin") {
+      window.showNotification("You do not have permission to update users.", "error");
       return;
     }
 

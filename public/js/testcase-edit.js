@@ -28,6 +28,12 @@ async function loadTestCase() {
     return;
   }
 
+  if (!window.canManageTestCases(currentUser)) {
+    window.showNotification("You do not have access to this page.", "error");
+    window.location.href = `/testcase-detail.html?id=${testCaseId}`;
+    return;
+  }
+
   if (!testCaseId) {
     window.showNotification("Test case not found.", "error");
     return;
@@ -53,6 +59,17 @@ if (editForm) {
   editForm.addEventListener("submit", async (event) => {
     // This sends the edited values to the API.
     event.preventDefault();
+
+    const currentUser = await window.requireCurrentUser();
+
+    if (!currentUser) {
+      return;
+    }
+
+    if (!window.canManageTestCases(currentUser)) {
+      window.showNotification("You do not have permission to edit test cases.", "error");
+      return;
+    }
 
     const payload = Object.fromEntries(new FormData(editForm).entries());
 

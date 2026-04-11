@@ -17,7 +17,6 @@ router.get("/testcases/:id/comments", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // This direct object lookup allows IDOR
     const comments = await all(`
       SELECT id, test_case_id, author_email, content, created_at
       FROM comments

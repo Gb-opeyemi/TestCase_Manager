@@ -1,7 +1,7 @@
 const express = require("express");
 
 const { all, get, run } = require("../config/database");
-const { requireAuthenticated } = require("../middleware/auth");
+const { requireAuthenticated, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -48,7 +48,6 @@ router.get("/testcases/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // This direct object lookup allows IDOR
     const testCase = await get(`
       SELECT *
       FROM test_cases
@@ -70,7 +69,7 @@ router.get("/testcases/:id", async (req, res) => {
   }
 });
 
-router.post("/testcases", async (req, res) => {
+router.post("/testcases", requireRole("Admin", "Tester"), async (req, res) => {
   // This builds the insert query from the form values.
   const title = readValue(req.body.title);
   const summary = readValue(req.body.summary);
@@ -145,7 +144,7 @@ router.post("/testcases", async (req, res) => {
   }
 });
 
-router.patch("/testcases/:id", async (req, res) => {
+router.patch("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) => {
   // This updates a test case with the new form values.
   const { id } = req.params;
   const title = readValue(req.body.title);
@@ -165,7 +164,6 @@ router.patch("/testcases/:id", async (req, res) => {
 
   try {
     // This saves the changed test case record.
-    // This update has no backend role or ownership check
     await run(`
       UPDATE test_cases
       SET
@@ -197,12 +195,11 @@ router.patch("/testcases/:id", async (req, res) => {
   }
 });
 
-router.delete("/testcases/:id", async (req, res) => {
+router.delete("/testcases/:id", requireRole("Admin", "Tester"), async (req, res) => {
   // This removes a test case by its id.
   const { id } = req.params;
 
   try {
-    // This delete has no backend role or ownership check
     await run(`
       DELETE FROM test_cases
       WHERE id = ${id}

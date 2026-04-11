@@ -27,6 +27,12 @@ async function loadUsers() {
     return;
   }
 
+  if (currentUser.role !== "Admin") {
+    window.showNotification("You do not have access to this page.", "error");
+    window.location.href = "/dashboard.html";
+    return;
+  }
+
   try {
     const response = await fetch("/users");
     const data = await response.json();
@@ -50,6 +56,11 @@ if (createUserForm) {
     const currentUser = await window.requireCurrentUser();
 
     if (!currentUser) {
+      return;
+    }
+
+    if (currentUser.role !== "Admin") {
+      window.showNotification("You do not have permission to create users.", "error");
       return;
     }
 
@@ -94,6 +105,11 @@ if (usersTableBody) {
     const currentUser = await window.requireCurrentUser();
 
     if (!currentUser) {
+      return;
+    }
+
+    if (currentUser.role !== "Admin") {
+      window.showNotification("You do not have permission to delete users.", "error");
       return;
     }
 
