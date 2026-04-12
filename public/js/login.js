@@ -33,13 +33,13 @@ if (loginForm && loginMessage) {
       const data = await response.json();
 
       if (!response.ok) {
-        setLoginMessage(data.message || "Unable to sign in.", "is-error");
+        setLoginMessage(data.message || "Unable to sign in right now.", "is-error");
         return;
       }
 
       window.location.href = data.redirectTo || "/dashboard.html";
     } catch (error) {
-      setLoginMessage("Unable to sign in.", "is-error");
+      setLoginMessage("Unable to sign in right now.", "is-error");
     }
   });
 }

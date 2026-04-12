@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, get } = require("../config/database");
 const { requireAuthenticated } = require("../middleware/auth");
+const { sendServerError } = require("../utils/errors");
 
 const router = express.Router();
 
@@ -37,9 +38,7 @@ router.get("/api/dashboard", async (req, res) => {
       recentActivity,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Unable to load dashboard data.",
-    });
+    sendServerError(res, "dashboard:load", error, "Unable to load dashboard data.");
   }
 });
 

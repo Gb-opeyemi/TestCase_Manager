@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireCsrfToken, requireRole } = require("../middleware/auth");
+const { sendServerError } = require("../utils/errors");
 const {
   LEVEL_OPTIONS,
   STATUS_OPTIONS,
@@ -54,9 +55,7 @@ router.get("/testcases", async (req, res) => {
 
     res.json(rows);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "testcases:list", error, "Unable to load test cases.");
   }
 });
 
@@ -91,9 +90,7 @@ router.get("/testcases/:id", async (req, res) => {
 
     res.json(testCase);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "testcases:detail", error, "Unable to load test case.");
   }
 });
 
@@ -231,9 +228,7 @@ router.post("/testcases", requireCsrfToken, requireRole("Admin", "Tester"), asyn
       redirectTo: `/testcase-detail.html?id=${result.id}`,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "testcases:create", error, "Unable to save test case.");
   }
 });
 
@@ -379,9 +374,7 @@ router.patch("/testcases/:id", requireCsrfToken, requireRole("Admin", "Tester"),
       redirectTo: `/testcase-detail.html?id=${id}`,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "testcases:update", error, "Unable to save changes.");
   }
 });
 
@@ -410,9 +403,7 @@ router.delete("/testcases/:id", requireCsrfToken, requireRole("Admin", "Tester")
       redirectTo: "/testcases.html",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "testcases:delete", error, "Unable to delete test case.");
   }
 });
 

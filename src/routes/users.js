@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireCsrfToken, requireRole } = require("../middleware/auth");
+const { sendServerError } = require("../utils/errors");
 const { hashPassword } = require("../utils/passwords");
 const {
   ROLE_OPTIONS,
@@ -28,9 +29,7 @@ router.get("/users", async (req, res) => {
 
     res.json(users);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "users:list", error, "Unable to load users.");
   }
 });
 
@@ -65,9 +64,7 @@ router.get("/users/:id", async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "users:detail", error, "Unable to load user.");
   }
 });
 
@@ -129,9 +126,7 @@ router.post("/users", requireCsrfToken, async (req, res) => {
       message: "User created successfully.",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "users:create", error, "Unable to create user.");
   }
 });
 
@@ -224,9 +219,7 @@ router.patch("/users/:id", requireCsrfToken, async (req, res) => {
       message: "User updated successfully.",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "users:update", error, "Unable to update user.");
   }
 });
 
@@ -255,9 +248,7 @@ router.delete("/users/:id", requireCsrfToken, async (req, res) => {
       message: "User deleted successfully.",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "users:delete", error, "Unable to delete user.");
   }
 });
 

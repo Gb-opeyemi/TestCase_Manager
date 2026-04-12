@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, run } = require("../config/database");
 const { requireAuthenticated, requireCsrfToken } = require("../middleware/auth");
+const { sendServerError } = require("../utils/errors");
 const { hasMaxLength, isValidEmail, isValidId, readValue } = require("../utils/validation");
 
 const router = express.Router();
@@ -33,9 +34,7 @@ router.get("/testcases/:id/comments", async (req, res) => {
 
     res.json(comments);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "comments:list", error, "Unable to load comments.");
   }
 });
 
@@ -87,9 +86,7 @@ router.post("/testcases/:id/comments", requireCsrfToken, async (req, res) => {
       message: "Comment added.",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    sendServerError(res, "comments:create", error, "Unable to add comment.");
   }
 });
 
