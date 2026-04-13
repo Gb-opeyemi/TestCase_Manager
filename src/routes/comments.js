@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, run } = require("../config/database");
 const { requireAuthenticated, requireCsrfToken } = require("../middleware/auth");
+const { createAuditLog } = require("../utils/audit");
 const { sendServerError } = require("../utils/errors");
 const { hasMaxLength, isValidEmail, isValidId, readValue } = require("../utils/validation");
 
@@ -74,7 +75,7 @@ router.post("/testcases/:id/comments", requireCsrfToken, async (req, res) => {
 
   try {
     // This insert uses parameterized queries to avoid SQL Injection.
-    await run(
+    const result = await run(
       `
         INSERT INTO comments (test_case_id, author_email, content)
         VALUES (?, ?, ?)
@@ -84,6 +85,15 @@ router.post("/testcases/:id/comments", requireCsrfToken, async (req, res) => {
 
     res.status(201).json({
       message: "Comment added.",
+    });
+
+    createAuditLog(req, {
+      action: "COMMENT_CREATE",
+      entityType: "COMMENT",
+      entityId: result.id,
+      details: {
+        testCaseId: id,
+      },
     });
   } catch (error) {
     sendServerError(res, "comments:create", error, "Unable to add comment.");

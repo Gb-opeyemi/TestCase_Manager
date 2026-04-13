@@ -2,6 +2,7 @@ const express = require("express");
 
 const { get } = require("../config/database");
 const { requireCsrfToken } = require("../middleware/auth");
+const { createAuditLog } = require("../utils/audit");
 const { sendServerError } = require("../utils/errors");
 const { verifyPassword } = require("../utils/passwords");
 const {
@@ -82,6 +83,15 @@ router.post("/login", async (req, res) => {
           user: req.session.user,
           redirectTo: "/dashboard.html",
         });
+
+        createAuditLog(req, {
+          action: "LOGIN_SUCCESS",
+          entityType: "SESSION",
+          entityId: req.session.user.id,
+          details: {
+            email: req.session.user.email,
+          },
+        });
       });
     });
   } catch (error) {
@@ -106,11 +116,30 @@ router.get("/api/session", (req, res) => {
 
 router.post("/logout", requireCsrfToken, (req, res) => {
   // This clears the current session from the server.
+  const sessionUser = req.session?.user || null;
+
   req.session.destroy((error) => {
     if (error) {
       sendServerError(res, "auth:logout", error, "Unable to sign out right now.");
       return;
     }
+
+    createAuditLog(
+      {
+        ...req,
+        session: {
+          user: sessionUser,
+        },
+      },
+      {
+        action: "LOGOUT",
+        entityType: "SESSION",
+        entityId: sessionUser?.id,
+        details: {
+          email: sessionUser?.email || "Unknown",
+        },
+      }
+    );
 
     res.clearCookie("connect.sid");
     res.json({

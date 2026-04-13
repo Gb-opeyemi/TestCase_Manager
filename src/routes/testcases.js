@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireCsrfToken, requireRole } = require("../middleware/auth");
+const { createAuditLog } = require("../utils/audit");
 const { sendServerError } = require("../utils/errors");
 const {
   LEVEL_OPTIONS,
@@ -227,6 +228,16 @@ router.post("/testcases", requireCsrfToken, requireRole("Admin", "Tester"), asyn
       id: result.id,
       redirectTo: `/testcase-detail.html?id=${result.id}`,
     });
+
+    createAuditLog(req, {
+      action: "TESTCASE_CREATE",
+      entityType: "TEST_CASE",
+      entityId: result.id,
+      details: {
+        title,
+        status,
+      },
+    });
   } catch (error) {
     sendServerError(res, "testcases:create", error, "Unable to save test case.");
   }
@@ -373,6 +384,16 @@ router.patch("/testcases/:id", requireCsrfToken, requireRole("Admin", "Tester"),
     res.json({
       redirectTo: `/testcase-detail.html?id=${id}`,
     });
+
+    createAuditLog(req, {
+      action: "TESTCASE_UPDATE",
+      entityType: "TEST_CASE",
+      entityId: id,
+      details: {
+        title,
+        status,
+      },
+    });
   } catch (error) {
     sendServerError(res, "testcases:update", error, "Unable to save changes.");
   }
@@ -401,6 +422,12 @@ router.delete("/testcases/:id", requireCsrfToken, requireRole("Admin", "Tester")
 
     res.json({
       redirectTo: "/testcases.html",
+    });
+
+    createAuditLog(req, {
+      action: "TESTCASE_DELETE",
+      entityType: "TEST_CASE",
+      entityId: id,
     });
   } catch (error) {
     sendServerError(res, "testcases:delete", error, "Unable to delete test case.");

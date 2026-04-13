@@ -2,6 +2,7 @@ const express = require("express");
 
 const { all, get, run } = require("../config/database");
 const { requireAuthenticated, requireCsrfToken, requireRole } = require("../middleware/auth");
+const { createAuditLog } = require("../utils/audit");
 const { sendServerError } = require("../utils/errors");
 const { hashPassword } = require("../utils/passwords");
 const {
@@ -125,6 +126,16 @@ router.post("/users", requireCsrfToken, async (req, res) => {
       id: result.id,
       message: "User created successfully.",
     });
+
+    createAuditLog(req, {
+      action: "USER_CREATE",
+      entityType: "USER",
+      entityId: result.id,
+      details: {
+        email,
+        role,
+      },
+    });
   } catch (error) {
     sendServerError(res, "users:create", error, "Unable to create user.");
   }
@@ -218,6 +229,16 @@ router.patch("/users/:id", requireCsrfToken, async (req, res) => {
     res.json({
       message: "User updated successfully.",
     });
+
+    createAuditLog(req, {
+      action: "USER_UPDATE",
+      entityType: "USER",
+      entityId: id,
+      details: {
+        email,
+        role,
+      },
+    });
   } catch (error) {
     sendServerError(res, "users:update", error, "Unable to update user.");
   }
@@ -246,6 +267,12 @@ router.delete("/users/:id", requireCsrfToken, async (req, res) => {
 
     res.json({
       message: "User deleted successfully.",
+    });
+
+    createAuditLog(req, {
+      action: "USER_DELETE",
+      entityType: "USER",
+      entityId: id,
     });
   } catch (error) {
     sendServerError(res, "users:delete", error, "Unable to delete user.");

@@ -231,6 +231,21 @@ async function initializeDatabase() {
     )
   `);
 
+  // This creates the audit log table.
+  await run(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      actor_email TEXT,
+      actor_role TEXT,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      details TEXT,
+      ip_address TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   await seedUsers();
   await seedTestCases();
   await migratePlainTextPasswords();
